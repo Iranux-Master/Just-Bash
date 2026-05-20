@@ -1,0 +1,17 @@
+# Add user: ali, password P@ss, 30 days, max 2 logins, 10 GB bandwidth
+iranux /add ali P@ss 30 2 10
+
+# Add user with no expiry, no limits
+iranux /add testuser secret123
+
+# Delete user (also kills active sessions)
+iranux /del ali
+
+# List all users with status
+iranux /list
+
+# Show full config + payload for a user
+iranux /info ali
+
+# Show help
+iranux /help

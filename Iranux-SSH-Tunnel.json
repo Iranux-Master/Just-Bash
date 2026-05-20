@@ -1,0 +1,283 @@
+{
+  "protocol": "iranux-json-rpc",
+  "version": "1.0.0",
+  "encoding": "utf-8",
+  "transport": "ssh-stdout",
+  "commands": {
+    "add": {
+      "description": "Create a new SSH tunnel user",
+      "cli": "iranux /add {username} {password} [days] [max_logins] [--json]",
+      "parameters": [
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "position": 1,
+          "description": "SSH username",
+          "validation": {
+            "min_length": 3,
+            "max_length": 32,
+            "pattern": "^[a-z][a-z0-9_-]*$",
+            "pattern_hint": "Lowercase letters, numbers, underscore, dash. Must start with a letter."
+          }
+        },
+        {
+          "name": "password",
+          "type": "string",
+          "required": true,
+          "position": 2,
+          "description": "SSH password",
+          "validation": {
+            "min_length": 6,
+            "max_length": 64
+          }
+        },
+        {
+          "name": "days",
+          "type": "integer",
+          "required": false,
+          "position": 3,
+          "default": null,
+          "description": "Account expiry in days. Omit for no expiry.",
+          "validation": {
+            "min": 1,
+            "max": 3650
+          }
+        },
+        {
+          "name": "max_logins",
+          "type": "integer",
+          "required": false,
+          "position": 4,
+          "default": null,
+          "description": "Max simultaneous logins. Omit for unlimited.",
+          "validation": {
+            "min": 1,
+            "max": 100
+          }
+        },
+        {
+          "name": "--json",
+          "type": "flag",
+          "required": false,
+          "position": null,
+          "description": "Output result as JSON instead of human-readable text"
+        }
+      ],
+      "response": {
+        "success": {
+          "status": "success",
+          "command": "add",
+          "data": {
+            "protocol": "string",
+            "username": "string",
+            "password": "string",
+            "ssh_host": "string",
+            "ssh_port": "integer",
+            "udpgw_port": "integer",
+            "sni": "string",
+            "payload": "string",
+            "expiry": "string|null",
+            "max_logins": "integer|string"
+          }
+        },
+        "error": {
+          "status": "error",
+          "command": "add",
+          "code": "integer",
+          "message": "string"
+        }
+      }
+    },
+    "del": {
+      "description": "Delete an existing SSH tunnel user",
+      "cli": "iranux /del {username} [--json]",
+      "parameters": [
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "position": 1,
+          "description": "Username to delete",
+          "validation": {
+            "min_length": 1,
+            "max_length": 32
+          }
+        },
+        {
+          "name": "--json",
+          "type": "flag",
+          "required": false,
+          "position": null,
+          "description": "Output result as JSON instead of human-readable text"
+        }
+      ],
+      "response": {
+        "success": {
+          "status": "success",
+          "command": "del",
+          "data": {
+            "username": "string",
+            "message": "string"
+          }
+        },
+        "error": {
+          "status": "error",
+          "command": "del",
+          "code": "integer",
+          "message": "string"
+        }
+      }
+    },
+    "list": {
+      "description": "List all SSH tunnel users on the system",
+      "cli": "iranux /list [--json]",
+      "parameters": [
+        {
+          "name": "--json",
+          "type": "flag",
+          "required": false,
+          "position": null,
+          "description": "Output result as JSON instead of human-readable text"
+        }
+      ],
+      "response": {
+        "success": {
+          "status": "success",
+          "command": "list",
+          "data": {
+            "users": [
+              {
+                "username": "string",
+                "expiry": "string|null",
+                "max_logins": "integer|string",
+                "active": "boolean"
+              }
+            ],
+            "total": "integer"
+          }
+        },
+        "error": {
+          "status": "error",
+          "command": "list",
+          "code": "integer",
+          "message": "string"
+        }
+      }
+    },
+    "status": {
+      "description": "Get server and service status (proxy, UDPGW, uptime)",
+      "cli": "iranux /status [--json]",
+      "parameters": [
+        {
+          "name": "--json",
+          "type": "flag",
+          "required": false,
+          "position": null,
+          "description": "Output result as JSON instead of human-readable text"
+        }
+      ],
+      "response": {
+        "success": {
+          "status": "success",
+          "command": "status",
+          "data": {
+            "domain": "string",
+            "ssh_port": "integer",
+            "proxy_port": "integer",
+            "proxy_status": "string",
+            "udpgw_port": "integer",
+            "udpgw_status": "string",
+            "badvpn_status": "string",
+            "uptime": "string"
+          }
+        },
+        "error": {
+          "status": "error",
+          "command": "status",
+          "code": "integer",
+          "message": "string"
+        }
+      }
+    },
+    "info": {
+      "description": "Get info about a specific SSH tunnel user",
+      "cli": "iranux /info {username} [--json]",
+      "parameters": [
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "position": 1,
+          "description": "Username to look up"
+        },
+        {
+          "name": "--json",
+          "type": "flag",
+          "required": false,
+          "position": null,
+          "description": "Output result as JSON instead of human-readable text"
+        }
+      ],
+      "response": {
+        "success": {
+          "status": "success",
+          "command": "info",
+          "data": {
+            "username": "string",
+            "expiry": "string|null",
+            "max_logins": "integer|string",
+            "active": "boolean",
+            "created_at": "string"
+          }
+        },
+        "error": {
+          "status": "error",
+          "command": "info",
+          "code": "integer",
+          "message": "string"
+        }
+      }
+    },
+    "schema": {
+      "description": "Print the full JSON-RPC schema for this CLI (this document)",
+      "cli": "iranux --schema",
+      "parameters": [],
+      "response": {
+        "success": {
+          "note": "Prints this schema document to stdout. No --json flag needed."
+        }
+      }
+    },
+    "help": {
+      "description": "Show CLI help and usage information",
+      "cli": "iranux /help",
+      "aliases": [
+        "/help",
+        "help",
+        "--help",
+        "-h"
+      ],
+      "parameters": [],
+      "response": {
+        "success": {
+          "note": "Prints human-readable help to stdout. No --json flag."
+        }
+      }
+    }
+  },
+  "error_codes": {
+    "1": "General error",
+    "2": "Permission denied (not root)",
+    "3": "User already exists",
+    "4": "User not found",
+    "5": "Invalid parameter",
+    "6": "System error (useradd failed)",
+    "7": "Service not running"
+  },
+  "meta": {
+    "schema_command": "iranux --schema",
+    "json_flag": "--json",
+    "min_app_version": "1.0.0"
+  }
+}
