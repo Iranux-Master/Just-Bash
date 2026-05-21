@@ -967,7 +967,7 @@ fi
 "label": "NS Domain",
 "description": "Optional domain used to replace the default v.domain.com placeholder in server_config.toml.",
 "type": "domain",
-"required": false,
+"required": true,
 "example": "vpn.example.com",
 "placeholder": "vpn.example.com",
 "group": "Configuration"
