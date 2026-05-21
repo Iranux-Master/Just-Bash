@@ -1241,3 +1241,6 @@ Supported OS metadata was inferred from the script’s apt/dnf/yum handling and 
 
 No new set -euo pipefail was added; it already existed in the source script.
 === IRANUX_WARNINGS_END ===
+
+echo "__IRANUX_REACHED_END_V1__"
+
