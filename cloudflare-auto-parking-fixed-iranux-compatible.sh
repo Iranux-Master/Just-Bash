@@ -10,7 +10,8 @@
     "id": "cloudflare-auto-parking-fixed-dns",
     "name": "Cloudflare Auto Parking and Fixed DNS Setup",
     "version": "1.0.0",
-    "description": "Adds or reuses a Cloudflare full zone, prints Cloudflare-assigned nameservers, creates or updates A records for root and ns with proxy disabled, and creates or updates fixed NS records for v, vs, s, ss, t, and ts."
+    "description": "Adds or reuses a Cloudflare full zone, prints Cloudflare-assigned nameservers, creates or updates A records for root and ns with proxy disabled, and creates or updates fixed NS records for v, vs, s, ss, t, and ts.
+    https://youtube.com/@iranux"
   },
   "risk": {
     "level": "medium"
