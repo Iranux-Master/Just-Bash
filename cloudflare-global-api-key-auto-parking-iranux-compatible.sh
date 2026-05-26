@@ -10,7 +10,7 @@
     "id": "cloudflare-global-api-key-auto-parking",
     "name": "Cloudflare Global API Key Auto Parking",
     "version": "1.0.0",
-    "description": "Adds or reuses a Cloudflare full zone using Global API Key authentication, prints Cloudflare-assigned nameservers, creates or updates A records for root and ns with proxy disabled, and creates or updates fixed NS records for v, vs, s, ss, t, and ts. Link: https://youtube.com/@iranux"
+    "description": "Adds or reuses a Cloudflare full zone using Global API Key authentication, prints Cloudflare-assigned nameservers, creates or updates A records for root and ns with proxy disabled, and creates or updates fixed NS records for v, vs, s, ss, t, and ts."
   },
   "risk": {
     "level": "high"
