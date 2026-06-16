@@ -122,6 +122,34 @@ def clean_generated_wrapper(text: str) -> str:
     return text.replace('\r\n', '\n').replace('\r', '\n')
 
 
+def repair_known_source_defects(text: str, filename: str) -> str:
+    """Repair confirmed transcription defects without changing intended behavior."""
+    if filename != 'StormDNS-Server(Iranux Compatible).sh':
+        return text
+
+    broken = '''for f in 
+"$INSTALL_DIR"/StormDNS_Server_Linux* 
+"$INSTALL_DIR"/server_config.toml 
+"$INSTALL_DIR"/server_config.toml.backup 
+"$INSTALL_DIR"/server_config.toml.bak 
+"$INSTALL_DIR"/server_config_*.toml 
+"$INSTALL_DIR"/encrypt_key.txt 
+"$INSTALL_DIR"/init_logs.tmp 
+"$INSTALL_DIR"/*.spec; do'''
+    repaired = '''for f in \\
+"$INSTALL_DIR"/StormDNS_Server_Linux* \\
+"$INSTALL_DIR"/server_config.toml \\
+"$INSTALL_DIR"/server_config.toml.backup \\
+"$INSTALL_DIR"/server_config.toml.bak \\
+"$INSTALL_DIR"/server_config_*.toml \\
+"$INSTALL_DIR"/encrypt_key.txt \\
+"$INSTALL_DIR"/init_logs.tmp \\
+"$INSTALL_DIR"/*.spec; do'''
+    if broken not in text:
+        raise ValueError(f'{filename}: expected known malformed cleanup loop was not found')
+    return text.replace(broken, repaired, 1)
+
+
 def upgrade_metadata(text: str, filename: str) -> str:
     matches = list(METADATA_RE.finditer(text))
     if len(matches) != 1:
@@ -154,6 +182,7 @@ def ensure_marker(text: str) -> str:
 def upgrade_file(path: Path) -> bool:
     original = path.read_text(encoding='utf-8-sig')
     updated = clean_generated_wrapper(original)
+    updated = repair_known_source_defects(updated, path.name)
     updated = CERT_RE.sub('\n', updated)
     updated = upgrade_metadata(updated, path.name)
     updated = ensure_marker(updated).rstrip() + '\n'
