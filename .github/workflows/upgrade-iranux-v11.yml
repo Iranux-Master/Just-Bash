@@ -1,12 +1,13 @@
 name: Upgrade and validate Iranux v1.1 scripts
 
 on:
-  push:
+  pull_request:
     branches:
-      - iranux-v1.1-upgrade-current
-    paths:
-      - tools/upgrade_to_iranux_v11.py
-      - .github/workflows/upgrade-iranux-v11.yml
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
   workflow_dispatch:
 
 permissions:
@@ -14,6 +15,7 @@ permissions:
 
 jobs:
   upgrade-and-validate:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'iranux-v1.1-upgrade-current'
     runs-on: ubuntu-latest
     steps:
       - name: Check out migration branch
