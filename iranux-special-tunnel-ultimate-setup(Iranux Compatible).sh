@@ -4,7 +4,7 @@
 {
   "standard": {
     "name": "iranux-script-metadata",
-    "schema_version": "1.0"
+    "schema_version": "1.1"
   },
   "script": {
     "id": "iranux-ultimate-setup-port-22",
@@ -18,8 +18,40 @@
   "requirements": {
     "requires_root": true,
     "requires_internet": true,
-    "supported_os": ["debian", "ubuntu"],
-    "required_commands": ["apt-get", "systemctl", "curl", "wget", "jq", "git", "cmake", "make", "gcc", "g++", "openssl", "ufw", "fuser", "lsof"]
+    "supported_os": [
+      "debian",
+      "ubuntu"
+    ],
+    "required_commands": [
+      "apt-get",
+      "systemctl",
+      "curl",
+      "wget",
+      "jq",
+      "git",
+      "cmake",
+      "make",
+      "gcc",
+      "g++",
+      "openssl",
+      "ufw",
+      "fuser",
+      "lsof"
+    ]
+  },
+  "ui": {
+    "category": {
+      "id": "network-services",
+      "name": "Network Services"
+    },
+    "action": {
+      "id": "ssh-tunnel-installers",
+      "name": "SSH Tunnel Installers"
+    },
+    "icon": {
+      "library": "mdi",
+      "name": "vpn"
+    }
   }
 }
 IRANUX_METADATA

@@ -2,59 +2,73 @@
 
 : <<'IRANUX_METADATA'
 {
-"standard": {
-"name": "iranux-script-metadata",
-"schema_version": "1.0"
-},
-"script": {
-"id": "stormdns-server-linux-installer",
-"name": "StormDNS Server Linux Installer",
-"version": "1.0.0",
-"description": "Installs, locally installs, or uninstalls the StormDNS server on Linux, including dependency setup, firewall changes, kernel tuning, systemd services, release downloads, and optional domain configuration."
-},
-"risk": {
-"level": "dangerous"
-},
-"requirements": {
-"requires_root": true,
-"requires_internet": true,
-"supported_os": [
-"ubuntu",
-"debian",
-"almalinux",
-"rocky",
-"rhel",
-"centos"
-],
-"required_commands": [
-"bash",
-"command",
-"id",
-"grep",
-"awk",
-"sed",
-"sort",
-"head",
-"find",
-"xargs",
-"ls",
-"cp",
-"mv",
-"rm",
-"ps",
-"pgrep",
-"kill",
-"sleep",
-"systemctl",
-"sysctl",
-"ss",
-"uname",
-"chmod",
-"curl",
-"wget",
-"unzip"
-]
-}
+  "standard": {
+    "name": "iranux-script-metadata",
+    "schema_version": "1.1"
+  },
+  "script": {
+    "id": "stormdns-server-linux-installer",
+    "name": "StormDNS Server Linux Installer",
+    "version": "1.0.0",
+    "description": "Installs, locally installs, or uninstalls the StormDNS server on Linux, including dependency setup, firewall changes, kernel tuning, systemd services, release downloads, and optional domain configuration."
+  },
+  "risk": {
+    "level": "dangerous"
+  },
+  "requirements": {
+    "requires_root": true,
+    "requires_internet": true,
+    "supported_os": [
+      "ubuntu",
+      "debian",
+      "almalinux",
+      "rocky",
+      "rhel",
+      "centos"
+    ],
+    "required_commands": [
+      "bash",
+      "command",
+      "id",
+      "grep",
+      "awk",
+      "sed",
+      "sort",
+      "head",
+      "find",
+      "xargs",
+      "ls",
+      "cp",
+      "mv",
+      "rm",
+      "ps",
+      "pgrep",
+      "kill",
+      "sleep",
+      "systemctl",
+      "sysctl",
+      "ss",
+      "uname",
+      "chmod",
+      "curl",
+      "wget",
+      "unzip"
+    ]
+  },
+  "ui": {
+    "category": {
+      "id": "network-services",
+      "name": "Network Services"
+    },
+    "action": {
+      "id": "dns-tunnel-servers",
+      "name": "DNS Tunnel Servers"
+    },
+    "icon": {
+      "library": "mdi",
+      "name": "server-network"
+    }
+  }
 }
 IRANUX_METADATA
 

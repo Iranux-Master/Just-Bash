@@ -1,61 +1,74 @@
-=== IRANUX_REWRITTEN_SCRIPT_BEGIN ===
 #!/usr/bin/env bash
 
 : <<'IRANUX_METADATA'
 {
-"standard": {
-"name": "iranux-script-metadata",
-"schema_version": "1.0"
-},
-"script": {
-"id": "stormdns-server-linux-installer",
-"name": "StormDNS Server Linux Installer",
-"version": "1.0.0",
-"description": "Installs, locally installs, or uninstalls the StormDNS server on Linux, including dependency setup, firewall changes, kernel tuning, systemd services, release downloads, and optional domain configuration."
-},
-"risk": {
-"level": "dangerous"
-},
-"requirements": {
-"requires_root": true,
-"requires_internet": true,
-"supported_os": [
-"ubuntu",
-"debian",
-"almalinux",
-"rocky",
-"rhel",
-"centos"
-],
-"required_commands": [
-"bash",
-"command",
-"id",
-"grep",
-"awk",
-"sed",
-"sort",
-"head",
-"find",
-"xargs",
-"ls",
-"cp",
-"mv",
-"rm",
-"ps",
-"pgrep",
-"kill",
-"sleep",
-"systemctl",
-"sysctl",
-"ss",
-"uname",
-"chmod",
-"curl",
-"wget",
-"unzip"
-]
-}
+  "standard": {
+    "name": "iranux-script-metadata",
+    "schema_version": "1.1"
+  },
+  "script": {
+    "id": "stormdns-server-linux-installer-extended",
+    "name": "StormDNS Server Linux Installer Extended",
+    "version": "1.0.0",
+    "description": "Installs, locally installs, or uninstalls the StormDNS server on Linux, including dependency setup, firewall changes, kernel tuning, systemd services, release downloads, and optional domain configuration."
+  },
+  "risk": {
+    "level": "dangerous"
+  },
+  "requirements": {
+    "requires_root": true,
+    "requires_internet": true,
+    "supported_os": [
+      "ubuntu",
+      "debian",
+      "almalinux",
+      "rocky",
+      "rhel",
+      "centos"
+    ],
+    "required_commands": [
+      "bash",
+      "command",
+      "id",
+      "grep",
+      "awk",
+      "sed",
+      "sort",
+      "head",
+      "find",
+      "xargs",
+      "ls",
+      "cp",
+      "mv",
+      "rm",
+      "ps",
+      "pgrep",
+      "kill",
+      "sleep",
+      "systemctl",
+      "sysctl",
+      "ss",
+      "uname",
+      "chmod",
+      "curl",
+      "wget",
+      "unzip"
+    ]
+  },
+  "ui": {
+    "category": {
+      "id": "network-services",
+      "name": "Network Services"
+    },
+    "action": {
+      "id": "dns-tunnel-servers",
+      "name": "DNS Tunnel Servers"
+    },
+    "icon": {
+      "library": "mdi",
+      "name": "server-network"
+    }
+  }
 }
 IRANUX_METADATA
 
@@ -120,10 +133,10 @@ fi
 
 local base_url
 if [[ -n "$version" ]]; then
-base_url="[https://github.com/nullroute1970/StormDNS/releases/download/${version}](https://github.com/nullroute1970/StormDNS/releases/download/${version})"
+base_url="https://github.com/nullroute1970/StormDNS/releases/download/${version}"
 log_info "Targeting StormDNS release: ${version}"
 else
-base_url="[https://github.com/nullroute1970/StormDNS/releases/latest/download](https://github.com/nullroute1970/StormDNS/releases/latest/download)"
+base_url="https://github.com/nullroute1970/StormDNS/releases/latest/download"
 fi
 
 case "$arch" in
@@ -161,10 +174,10 @@ local search_dirs=("$INSTALL_DIR" "$INSTALL_DIR/dist")
 local pat
 
 case "$arch" in
-x86_64|amd64) pat="*(A|a)(M|m)(D|d)64" ;;
-aarch64|arm64) pat="*(A|a)(R|r)(M|m)64" ;;
-armv7l|armv7|armhf) pat="*(A|a)(R|r)(M|m)(V|v)7" ;;
-i386|i486|i586|i686|x86) pat="*(X|x)86" ;;
+x86_64|amd64) pat="(A|a)(M|m)(D|d)64" ;;
+aarch64|arm64) pat="(A|a)(R|r)(M|m)64" ;;
+armv7l|armv7|armhf) pat="(A|a)(R|r)(M|m)(V|v)7" ;;
+i386|i486|i586|i686|x86) pat="(X|x)86" ;;
 *) log_error "Unsupported architecture: $arch" ;;
 esac
 
@@ -204,7 +217,7 @@ cat <<'USAGE'
 StormDNS Server Linux Installer
 
 Usage:
-bash <(curl -Ls [https://raw.githubusercontent.com/nullroute1970/StormDNS/main/server_linux_install.sh](https://raw.githubusercontent.com/nullroute1970/StormDNS/main/server_linux_install.sh)) [OPTIONS]
+bash <(curl -Ls https://raw.githubusercontent.com/nullroute1970/StormDNS/main/server_linux_install.sh) [OPTIONS]
 
 Options:
 -v, --version <VERSION>   Install a specific StormDNS release (tag), e.g. v1.2.3.
@@ -221,11 +234,11 @@ Examples:
 
 # Install the latest release (default behavior):
 
-bash <(curl -Ls [https://raw.githubusercontent.com/nullroute1970/StormDNS/main/server_linux_install.sh](https://raw.githubusercontent.com/nullroute1970/StormDNS/main/server_linux_install.sh))
+bash <(curl -Ls https://raw.githubusercontent.com/nullroute1970/StormDNS/main/server_linux_install.sh)
 
 # Install a specific release version:
 
-bash <(curl -Ls [https://raw.githubusercontent.com/nullroute1970/StormDNS/main/server_linux_install.sh](https://raw.githubusercontent.com/nullroute1970/StormDNS/main/server_linux_install.sh)) --version v1.2.3
+bash <(curl -Ls https://raw.githubusercontent.com/nullroute1970/StormDNS/main/server_linux_install.sh) --version v1.2.3
 
 # Local/offline install for testing:
 
@@ -234,7 +247,7 @@ sudo bash server_linux_install.sh --local
 
 # Uninstall StormDNS:
 
-bash <(curl -Ls [https://raw.githubusercontent.com/nullroute1970/StormDNS/main/server_linux_install.sh](https://raw.githubusercontent.com/nullroute1970/StormDNS/main/server_linux_install.sh)) --uninstall
+bash <(curl -Ls https://raw.githubusercontent.com/nullroute1970/StormDNS/main/server_linux_install.sh) --uninstall
 USAGE
 }
 
@@ -324,7 +337,7 @@ shift
 ;;
 -h|--help)
 print_usage
-echo "**IRANUX_REACHED_END_V1**"
+echo "__IRANUX_REACHED_END_V1__"
 exit 0
 ;;
 --)
@@ -456,15 +469,7 @@ log_header "Cleaning Install Directory"
 log_info "Install directory: $INSTALL_DIR"
 shopt -s nullglob
 local removed=0
-for f in 
-"$INSTALL_DIR"/StormDNS_Server_Linux* 
-"$INSTALL_DIR"/server_config.toml 
-"$INSTALL_DIR"/server_config.toml.backup 
-"$INSTALL_DIR"/server_config.toml.bak 
-"$INSTALL_DIR"/server_config_*.toml 
-"$INSTALL_DIR"/encrypt_key.txt 
-"$INSTALL_DIR"/init_logs.tmp 
-"$INSTALL_DIR"/*.spec; do
+for f in "$INSTALL_DIR"/StormDNS_Server_Linux* "$INSTALL_DIR"/server_config.toml "$INSTALL_DIR"/server_config.toml.backup "$INSTALL_DIR"/server_config.toml.bak "$INSTALL_DIR"/server_config_*.toml "$INSTALL_DIR"/encrypt_key.txt "$INSTALL_DIR"/init_logs.tmp "$INSTALL_DIR"/*.spec; do
 if [[ -e "$f" ]]; then
 rm -f -- "$f"
 log_info "Removed: $f"
@@ -485,7 +490,7 @@ echo -e "      Remove them manually if no longer needed."
 
 if [[ "$ACTION" == "uninstall" ]]; then
 do_uninstall
-echo "**IRANUX_REACHED_END_V1**"
+echo "__IRANUX_REACHED_END_V1__"
 exit 0
 fi
 
@@ -548,8 +553,8 @@ lsof -nP -iUDP:53 -iTCP:53 2>/dev/null || true
 
 get_port53_pids() {
 local pids_udp pids_tcp pids
-pids_udp="$(ss -H -lupn "sport = :53" 2>/dev/null | sed -n 's/.*pid=([0-9]+).*/\1/p' | sort -u)"
-pids_tcp="$(ss -H -ltpn "sport = :53" 2>/dev/null | sed -n 's/.*pid=([0-9]+).*/\1/p' | sort -u)"
+pids_udp="$(ss -H -lupn "sport = :53" 2>/dev/null | sed -nE 's/.*pid=([0-9]+).*/\1/p' | sort -u)"
+pids_tcp="$(ss -H -ltpn "sport = :53" 2>/dev/null | sed -nE 's/.*pid=([0-9]+).*/\1/p' | sort -u)"
 pids="$(printf '%s\n%s\n' "$pids_udp" "$pids_tcp" | sed '/^$/d' | sort -u)"
 if [[ -n "$pids" ]]; then
 echo "$pids"
@@ -678,7 +683,6 @@ unit_present=1
 log_info "Stopping existing StormDNS service..."
 systemctl stop stormdns 2>/dev/null || true
 
-```
 for _ in 1 2 3 4 5; do
   if ! systemctl is-active --quiet stormdns; then
     break
@@ -695,7 +699,6 @@ fi
 
 systemctl stop stormdns 2>/dev/null || true
 systemctl reset-failed stormdns 2>/dev/null || true
-```
 
 fi
 
@@ -726,8 +729,8 @@ show_port53_usage
 if systemctl is-active --quiet systemd-resolved; then
 log_info "Configuring systemd-resolved DNSStubListener=no ..."
 backup_file_once /etc/systemd/resolved.conf
-if grep -q '^#?DNSStubListener=' /etc/systemd/resolved.conf; then
-sed -i 's/^#?DNSStubListener=.*/DNSStubListener=no/' /etc/systemd/resolved.conf || true
+if grep -qE '^#?DNSStubListener=' /etc/systemd/resolved.conf; then
+sed -i -E 's/^#?DNSStubListener=.*/DNSStubListener=no/' /etc/systemd/resolved.conf || true
 else
 echo 'DNSStubListener=no' >> /etc/systemd/resolved.conf
 fi
@@ -740,11 +743,7 @@ fi
 stop_socket_if_present systemd-resolved.socket
 stop_socket_if_present dnsmasq.socket
 
-for srv in 
-bind9 bind9.service named named.service named-pkcs11 named-pkcs11.service 
-dnsmasq dnsmasq.service unbound unbound.service pdns pdns.service 
-knot-resolver kresd [kresd@1.service](mailto:kresd@1.service) dnscrypt-proxy dnscrypt-proxy.service 
-smartdns smartdns.service coredns coredns.service pihole-FTL pihole-FTL.service; do
+for srv in bind9 bind9.service named named.service named-pkcs11 named-pkcs11.service dnsmasq dnsmasq.service unbound unbound.service pdns pdns.service knot-resolver kresd kresd@1.service dnscrypt-proxy dnscrypt-proxy.service smartdns smartdns.service coredns coredns.service pihole-FTL pihole-FTL.service; do
 stop_service_if_present "$srv"
 done
 
@@ -857,13 +856,12 @@ EOF
 sysctl --system >/dev/null 2>&1 || log_warn "Some supplementary sysctl values may not have applied."
 
 cat > /etc/security/limits.d/99-stormdns.conf <<'EOF'
-
 * soft nofile 1048576
 * hard nofile 1048576
-  root soft nofile 1048576
-  root hard nofile 1048576
-  EOF
-  log_success "Kernel and file descriptor limits configured."
+root soft nofile 1048576
+root hard nofile 1048576
+EOF
+log_success "Kernel and file descriptor limits configured."
 
 if [[ "$LOCAL_MODE" -eq 1 ]]; then
 log_header "Locating Local Server Binary"
@@ -979,7 +977,8 @@ USER_DOMAIN="${USER_DOMAIN:-}"
 if [[ -f "server_config.toml" ]] && grep -q '"v.domain.com"' server_config.toml; then
 echo -e "${YELLOW}${BOLD}Attention:${NC} Set your NS domain."
 if [[ -n "${USER_DOMAIN:-}" ]]; then
-sed -i -E "s|^DOMAIN[[:space:]]*=.*$|DOMAIN = ["${USER_DOMAIN}"]|" server_config.toml
+escaped_domain="$(printf '%s' "$USER_DOMAIN" | sed -e 's/[\/&|]/\\&/g')"
+sed -i -E "s|^DOMAIN[[:space:]]*=.*$|DOMAIN = [\"${escaped_domain}\"]|" server_config.toml
 fi
 fi
 
@@ -1124,123 +1123,5 @@ echo -e "${YELLOW}Final Note:${NC} If config changes, run: systemctl restart sto
 
 rm -f *.spec >/dev/null 2>&1 || true
 
-echo "**IRANUX_REACHED_END_V1**"
-exit 0
-=== IRANUX_REWRITTEN_SCRIPT_END ===
-
-=== IRANUX_CONVERSION_REPORT_BEGIN ===
-Source reviewed: 
-
-Converted the uploaded StormDNS Bash installer into an Iranux Compatible candidate by adding exactly one IRANUX_METADATA block and four IRANUX_PARAM blocks.
-
-Preserved the original strict mode because the source script already used set -euo pipefail.
-
-Converted configurable execution inputs into Iranux parameters while preserving the existing CLI parser:
-
-* ACTION is represented by action.
-* TARGET_VERSION is represented by target_version.
-* LOCAL_MODE is represented by local_mode.
-
-Converted the direct interactive domain prompt into the user_domain parameter. The original behavior of only applying the domain when a non-empty value is provided was preserved.
-
-Preserved existing Bash validation and failure behavior, including invalid CLI combinations, invalid version tag handling, root requirement enforcement, package manager detection, port 53 checks, service start checks, and existing log_error failure exits.
-
-Added the Iranux final marker only to successful completion paths:
-
-* help path before exit 0
-* uninstall path before exit 0
-* main install/local-install completion path before final exit 0
-
-No IRANUX_CERTIFICATION block was added.
-=== IRANUX_CONVERSION_REPORT_END ===
-
-=== IRANUX_DETECTED_PARAMETERS_BEGIN ===
-[
-{
-"name": "action",
-"label": "Installer Action",
-"description": "Choose whether the script should install StormDNS or uninstall an existing StormDNS installation. The Bash script expects install or uninstall.",
-"type": "enum",
-"required": false,
-"default": "install",
-"options": [
-{
-"label": "Install",
-"value": "install"
-},
-{
-"label": "Uninstall",
-"value": "uninstall"
-}
-],
-"group": "Execution Mode"
-},
-{
-"name": "target_version",
-"label": "Target Version",
-"description": "Optional StormDNS release tag to install, for example v1.2.3. Leave empty to install the latest release.",
-"type": "string",
-"required": false,
-"example": "v1.2.3",
-"placeholder": "v1.2.3",
-"validation": {
-"pattern": "^[A-Za-z0-9._+-]+$"
-},
-"group": "Execution Mode"
-},
-{
-"name": "local_mode",
-"label": "Local Offline Install",
-"description": "Choose whether to use local files instead of downloading from GitHub. The Bash script expects 1 for local mode or 0 for download mode.",
-"type": "enum",
-"required": false,
-"default": "0",
-"options": [
-{
-"label": "Download from GitHub",
-"value": "0"
-},
-{
-"label": "Use local files",
-"value": "1"
-}
-],
-"group": "Execution Mode"
-},
-{
-"name": "user_domain",
-"label": "NS Domain",
-"description": "Optional domain used to replace the default v.domain.com placeholder in server_config.toml.",
-"type": "domain",
-"required": false,
-"example": "vpn.example.com",
-"placeholder": "vpn.example.com",
-"group": "Configuration"
-}
-]
-=== IRANUX_DETECTED_PARAMETERS_END ===
-
-=== IRANUX_WARNINGS_BEGIN ===
-This is an Iranux Compatible candidate only. It is not Iranux Verified and contains no IRANUX_CERTIFICATION block.
-
-Risk level is dangerous because the script can remove files and directories, delete service files, terminate processes, change firewall rules, stop DNS-related services, modify systemd-resolved configuration, write sysctl and limits configuration, install packages, download and execute release binaries, install systemd services, and restart services.
-
-The script can run rm -rf on specific StormDNS/systemd-related paths and on a temporary download directory. Human review is required before uninstall or cleanup execution.
-
-The script modifies firewall behavior through ufw, firewalld, iptables, ip6tables, nftables, and an outbound TCP/53 egress filter. This can affect DNS/network reachability.
-
-The script stops or disables services and sockets that may conflict with port 53, including systemd-resolved and common DNS services. This can affect server DNS resolution.
-
-The script can kill processes bound to port 53, including forced SIGKILL behavior.
-
-The script prints the generated encryption key to stdout. Treat execution logs as sensitive.
-
-The metadata marks requires_internet as true because the default install path installs packages and downloads GitHub release artifacts. Local mode and uninstall mode may not require internet.
-
-Supported OS metadata was inferred from the script’s apt/dnf/yum handling and legacy detection logic, but exact distribution/version compatibility still requires human review.
-
-No new set -euo pipefail was added; it already existed in the source script.
-=== IRANUX_WARNINGS_END ===
-
 echo "__IRANUX_REACHED_END_V1__"
-
+exit 0

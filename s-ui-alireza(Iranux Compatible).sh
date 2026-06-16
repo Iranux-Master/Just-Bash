@@ -4,7 +4,7 @@
 {
   "standard": {
     "name": "iranux-script-metadata",
-    "schema_version": "1.0"
+    "schema_version": "1.1"
   },
   "script": {
     "id": "s-ui-alireza-installer",
@@ -18,8 +18,39 @@
   "requirements": {
     "requires_root": true,
     "requires_internet": true,
-    "supported_os": ["ubuntu", "debian", "centos", "almalinux", "rocky", "oracle", "fedora", "arch", "manjaro", "parch", "opensuse-tumbleweed"],
-    "required_commands": ["wget", "curl", "tar", "systemctl"]
+    "supported_os": [
+      "ubuntu",
+      "debian",
+      "centos",
+      "almalinux",
+      "rocky",
+      "oracle",
+      "fedora",
+      "arch",
+      "manjaro",
+      "parch",
+      "opensuse-tumbleweed"
+    ],
+    "required_commands": [
+      "wget",
+      "curl",
+      "tar",
+      "systemctl"
+    ]
+  },
+  "ui": {
+    "category": {
+      "id": "proxy-management",
+      "name": "Proxy Management"
+    },
+    "action": {
+      "id": "management-panel-installers",
+      "name": "Management Panel Installers"
+    },
+    "icon": {
+      "library": "mdi",
+      "name": "view-dashboard-outline"
+    }
   }
 }
 IRANUX_METADATA

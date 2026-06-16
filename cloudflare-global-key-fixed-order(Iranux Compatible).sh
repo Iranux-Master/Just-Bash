@@ -4,7 +4,7 @@
 {
   "standard": {
     "name": "iranux-script-metadata",
-    "schema_version": "1.0"
+    "schema_version": "1.1"
   },
   "script": {
     "id": "cloudflare-global-key-fixed-order-auto-parking",
@@ -18,8 +18,28 @@
   "requirements": {
     "requires_root": false,
     "requires_internet": true,
-    "supported_os": ["ubuntu", "debian"],
-    "required_commands": ["curl", "jq"]
+    "supported_os": [
+      "ubuntu",
+      "debian"
+    ],
+    "required_commands": [
+      "curl",
+      "jq"
+    ]
+  },
+  "ui": {
+    "category": {
+      "id": "dns-and-domains",
+      "name": "DNS and Domains"
+    },
+    "action": {
+      "id": "cloudflare-zone-management",
+      "name": "Cloudflare Zone Management"
+    },
+    "icon": {
+      "library": "mdi",
+      "name": "key-variant"
+    }
   }
 }
 IRANUX_METADATA
