@@ -2,6 +2,8 @@
 
 A curated collection of standalone Bash scripts prepared for execution through the Iranux Windows application.
 
+The governing metadata specification is maintained in the [Iranux Bash Script Standard](https://github.com/Iranux-Master/Iranux-BashScript-Standard) repository.
+
 ## Iranux compatibility
 
 All Bash files in this repository declare **Iranux Bash Script Standard v1.1** metadata inside the script itself. Each file is self-describing and contains:
