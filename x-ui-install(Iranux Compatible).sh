@@ -4,7 +4,7 @@
 {
   "standard": {
     "name": "iranux-script-metadata",
-    "schema_version": "1.0"
+    "schema_version": "1.1"
   },
   "script": {
     "id": "x-ui-installer-iranux-compatible",
@@ -18,8 +18,44 @@
   "requirements": {
     "requires_root": true,
     "requires_internet": true,
-    "supported_os": ["ubuntu", "debian", "armbian", "fedora", "amzn", "virtuozzo", "rhel", "almalinux", "rocky", "ol", "centos", "arch", "manjaro", "parch", "opensuse-tumbleweed", "opensuse-leap", "alpine"],
-    "required_commands": ["curl", "tar", "openssl"]
+    "supported_os": [
+      "ubuntu",
+      "debian",
+      "armbian",
+      "fedora",
+      "amzn",
+      "virtuozzo",
+      "rhel",
+      "almalinux",
+      "rocky",
+      "ol",
+      "centos",
+      "arch",
+      "manjaro",
+      "parch",
+      "opensuse-tumbleweed",
+      "opensuse-leap",
+      "alpine"
+    ],
+    "required_commands": [
+      "curl",
+      "tar",
+      "openssl"
+    ]
+  },
+  "ui": {
+    "category": {
+      "id": "proxy-management",
+      "name": "Proxy Management"
+    },
+    "action": {
+      "id": "management-panel-installers",
+      "name": "Management Panel Installers"
+    },
+    "icon": {
+      "library": "mdi",
+      "name": "view-dashboard"
+    }
   }
 }
 IRANUX_METADATA

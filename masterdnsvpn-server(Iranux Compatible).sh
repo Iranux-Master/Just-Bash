@@ -4,7 +4,7 @@
 {
   "standard": {
     "name": "iranux-script-metadata",
-    "schema_version": "1.0"
+    "schema_version": "1.1"
   },
   "script": {
     "id": "masterdnsvpn-server-linux-installer",
@@ -18,8 +18,38 @@
   "requirements": {
     "requires_root": true,
     "requires_internet": true,
-    "supported_os": ["ubuntu", "debian", "almalinux", "rocky", "rhel", "centos", "fedora", "amzn"],
-    "required_commands": ["curl", "wget", "unzip", "systemctl", "sysctl", "ss"]
+    "supported_os": [
+      "ubuntu",
+      "debian",
+      "almalinux",
+      "rocky",
+      "rhel",
+      "centos",
+      "fedora",
+      "amzn"
+    ],
+    "required_commands": [
+      "curl",
+      "wget",
+      "unzip",
+      "systemctl",
+      "sysctl",
+      "ss"
+    ]
+  },
+  "ui": {
+    "category": {
+      "id": "network-services",
+      "name": "Network Services"
+    },
+    "action": {
+      "id": "dns-tunnel-servers",
+      "name": "DNS Tunnel Servers"
+    },
+    "icon": {
+      "library": "mdi",
+      "name": "dns"
+    }
   }
 }
 IRANUX_METADATA

@@ -1,0 +1,48 @@
+name: Upgrade and validate Iranux v1.1 scripts
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  upgrade-and-validate:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'iranux-v1.1-upgrade-current'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out migration branch
+        uses: actions/checkout@v4
+        with:
+          ref: iranux-v1.1-upgrade-current
+          fetch-depth: 0
+
+      - name: Upgrade scripts to Iranux v1.1
+        run: python3 tools/run_upgrade.py
+
+      - name: Validate idempotence and Bash syntax
+        run: |
+          python3 tools/upgrade_to_iranux_v11.py --check
+          find . -maxdepth 1 -type f -name '*.sh' -print0 \
+            | while IFS= read -r -d '' script; do
+                bash -n "$script"
+              done
+
+      - name: Commit generated script upgrades
+        run: |
+          if git diff --quiet; then
+            echo 'No generated changes were required.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- '*.sh' IRANUX-V1.1-VALIDATION.md
+          git commit -m 'refactor: upgrade Bash scripts to Iranux v1.1'
+          git push origin HEAD:iranux-v1.1-upgrade-current
