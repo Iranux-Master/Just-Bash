@@ -43,6 +43,12 @@ The application reads `requirements.supported_os`, `ui.category`, `ui.action`, `
 | x-ui Alireza Installer | Proxy Management | Management Panel Installers | `view-dashboard-outline` |
 | 3x-ui Iranux-Compatible Installer | Proxy Management | Management Panel Installers | `view-dashboard` |
 
+## StormDNS duplicate cleanup
+
+The original uppercase `StormDNS-Server(Iranux Compatible).sh` file contained an AI conversion wrapper, raw conversion-report text, Markdown-formatted URLs and service names, invalid line continuations, a duplicate script ID, and a malformed final marker. It was not safely executable Bash.
+
+The v1.1 migration rebuilds that duplicate from the repository's clean lowercase StormDNS implementation, then assigns it the distinct identity `stormdns-server-linux-installer-extended`. This preserves a functional StormDNS action under both existing filenames without retaining corrupted generated text or duplicate IDs.
+
 ## Parameters and form generation
 
 Each input is described in an independent strict-JSON `IRANUX_PARAM` block. Iranux should generate form controls from the declared type, display labels and descriptions, apply defaults and validation, and protect sensitive values.
