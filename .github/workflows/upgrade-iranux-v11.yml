@@ -25,7 +25,7 @@ jobs:
           fetch-depth: 0
 
       - name: Upgrade scripts to Iranux v1.1
-        run: python3 tools/upgrade_to_iranux_v11.py
+        run: python3 tools/run_upgrade.py
 
       - name: Validate idempotence and Bash syntax
         run: |
