@@ -4,13 +4,20 @@
 {
   "standard": {
     "name": "iranux-script-metadata",
-    "schema_version": "1.1"
+    "schema_version": "1.2"
   },
   "script": {
     "id": "iranux-ultimate-setup-port-22",
     "name": "Iranux Ultimate Setup Port 22 Edition",
     "version": "1.4.0",
-    "description": "Installs and configures the Iranux SSH WebSocket tunnel stack with Node.js 22, BadVPN UDPGW, Telegram bot management, SSH on port 22, and related systemd services."
+    "description": "Installs the Iranux SSH WebSocket tunnel on port 443 with Node.js 22, BadVPN UDPGW and a Telegram management bot. It deletes existing non-admin user accounts and earlier tunnel data, stops web servers on ports 80 and 443, forces SSH to port 22 with password login, resets the firewall and upgrades all packages.",
+    "estimated_minutes": 12,
+    "i18n": {
+      "fa": {
+        "name": "نصب کامل تونل Iranux روی پورت 22",
+        "description": "تونل Iranux از نوع SSH WebSocket را روی پورت 443 همراه با Node.js 22، BadVPN UDPGW و ربات مدیریت تلگرام نصب می‌کند. حساب‌های کاربری موجود (به‌جز admin) و داده‌های تونل قبلی را حذف می‌کند، وب‌سرورهای روی پورت‌های 80 و 443 را متوقف می‌کند، SSH را روی پورت 22 با ورود با رمز عبور تنظیم می‌کند، تنظیمات فایروال را پاک و دوباره تنظیم می‌کند و همه‌ی بسته‌ها را به‌روزرسانی می‌کند."
+      }
+    }
   },
   "risk": {
     "level": "dangerous"
@@ -22,22 +29,7 @@
       "debian",
       "ubuntu"
     ],
-    "required_commands": [
-      "apt-get",
-      "systemctl",
-      "curl",
-      "wget",
-      "jq",
-      "git",
-      "cmake",
-      "make",
-      "gcc",
-      "g++",
-      "openssl",
-      "ufw",
-      "fuser",
-      "lsof"
-    ]
+    "required_commands": ["apt-get", "systemctl"]
   },
   "ui": {
     "category": {
@@ -55,6 +47,63 @@
   }
 }
 IRANUX_METADATA
+
+: <<'IRANUX_PARAM'
+{
+  "name": "domain",
+  "label": "Domain",
+  "description": "Enter the domain that points to this server. It is used for the tunnel certificate and for the connection settings the bot gives your users.",
+  "type": "domain",
+  "required": true,
+  "example": "sub.iranux.nz",
+  "group": "Iranux Setup",
+  "i18n": {
+    "fa": {
+      "label": "دامنه",
+      "description": "دامنه‌ای را وارد کنید که به این سرور اشاره می‌کند. از آن برای گواهی تونل و برای تنظیمات اتصالی که ربات به کاربران شما می‌دهد استفاده می‌شود."
+    }
+  }
+}
+IRANUX_PARAM
+
+: <<'IRANUX_PARAM'
+{
+  "name": "bot_token",
+  "label": "Telegram bot token",
+  "description": "Enter the token of the Telegram bot you will use to manage the tunnel. You get it from @BotFather.",
+  "type": "secret",
+  "required": true,
+  "placeholder": "123456789:AA...",
+  "group": "Telegram Bot",
+  "i18n": {
+    "fa": {
+      "label": "توکن ربات تلگرام",
+      "description": "توکن ربات تلگرامی را وارد کنید که با آن تونل را مدیریت می‌کنید. این توکن را از @BotFather می‌گیرید."
+    }
+  }
+}
+IRANUX_PARAM
+
+: <<'IRANUX_PARAM'
+{
+  "name": "admin_id",
+  "label": "Telegram admin ID",
+  "description": "Enter the numeric Telegram user ID of the person allowed to manage the bot.",
+  "type": "string",
+  "required": true,
+  "example": "123456789",
+  "validation": {
+    "pattern": "^-?[0-9]+$"
+  },
+  "group": "Telegram Bot",
+  "i18n": {
+    "fa": {
+      "label": "شناسه‌ی عددی مدیر در تلگرام",
+      "description": "شناسه‌ی عددی حساب تلگرام کسی را وارد کنید که اجازه‌ی مدیریت ربات را دارد."
+    }
+  }
+}
+IRANUX_PARAM
 
 # ==============================================================================
 # Iranux Ultimate Setup: PORT 22 EDITION (Stability First)
@@ -88,22 +137,10 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-clear
 echo -e "${CYAN}===================================================${RESET}"
 echo -e "${CYAN}      IRANUX INSTALLER (SSH PORT 22 EDITION)       ${RESET}"
 echo -e "${CYAN}===================================================${RESET}"
 
-: <<'IRANUX_PARAM'
-{
-  "name": "domain",
-  "label": "Domain",
-  "description": "The domain used for the Iranux SSH WebSocket tunnel, TLS certificate common name, Telegram-generated client payload, and service configuration.",
-  "type": "domain",
-  "required": true,
-  "example": "sub.iranux.nz",
-  "group": "Iranux Setup"
-}
-IRANUX_PARAM
 
 DOMAIN="${DOMAIN:-}"
 
@@ -112,18 +149,6 @@ while [[ -z "$DOMAIN" ]]; do
     exit 1
 done
 
-: <<'IRANUX_PARAM'
-{
-  "name": "bot_token",
-  "label": "Telegram Bot Token",
-  "description": "Telegram bot token used by the Iranux management bot.",
-  "type": "secret",
-  "required": true,
-  "sensitive": true,
-  "placeholder": "123456789:AA...",
-  "group": "Telegram Bot"
-}
-IRANUX_PARAM
 
 BOT_TOKEN="${BOT_TOKEN:-}"
 
@@ -132,21 +157,6 @@ if [[ -z "$BOT_TOKEN" || "$BOT_TOKEN" == "YOUR_TELEGRAM_BOT_TOKEN" ]]; then
     exit 1
 fi
 
-: <<'IRANUX_PARAM'
-{
-  "name": "admin_id",
-  "label": "Telegram Admin ID",
-  "description": "Numeric Telegram user ID allowed to manage the Iranux bot.",
-  "type": "string",
-  "required": true,
-  "example": "123456789",
-  "validation": {
-    "pattern": "^-?[0-9]+$",
-    "pattern_hint": "Telegram admin ID must be numeric."
-  },
-  "group": "Telegram Bot"
-}
-IRANUX_PARAM
 
 ADMIN_ID="${ADMIN_ID:-}"
 
@@ -325,6 +335,7 @@ mkdir -p ${APP_DIR}/logs
 
 # Save Config
 echo "DOMAIN=${DOMAIN}" > ${CONFIG_FILE}
+chmod 600 "${CONFIG_FILE}"
 echo "SECRET_PATH=${SECRET_PATH}" >> ${CONFIG_FILE}
 echo "SSH_PORT=${FIXED_SSH_PORT}" >> ${CONFIG_FILE}
 echo "BADVPN_PORT=${BADVPN_PORT}" >> ${CONFIG_FILE}
@@ -1567,4 +1578,14 @@ echo -e "    /add <user> <pass> <days> <limit>  Create user via Telegram"
 echo -e ""
 echo -e "${CYAN}===========================================${RESET}"
 
+iranux_json_string() {
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  s="${s//$'\t'/\\t}"
+  s="${s//$'\r'/\\r}"
+  s="${s//$'\n'/\\n}"
+  printf '"%s"' "$s"
+}
+echo "IRANUX_RESULT {\"outputs\":[{\"key\":\"domain\",\"label\":\"SSH host and SNI\",\"value\":$(iranux_json_string "$DOMAIN"),\"type\":\"copy\",\"i18n\":{\"fa\":{\"label\":\"میزبان SSH و SNI\"}}},{\"key\":\"tunnel_port\",\"label\":\"Tunnel port\",\"value\":\"443\",\"type\":\"copy\",\"i18n\":{\"fa\":{\"label\":\"پورت تونل\"}}},{\"key\":\"secret_path\",\"label\":\"WebSocket path\",\"value\":\"${SECRET_PATH}\",\"type\":\"copy\",\"i18n\":{\"fa\":{\"label\":\"مسیر WebSocket\"}}},{\"key\":\"udpgw_port\",\"label\":\"UDPGW port\",\"value\":\"${BADVPN_PORT}\",\"type\":\"copy\",\"i18n\":{\"fa\":{\"label\":\"پورت UDPGW\"}}},{\"key\":\"ssh_port\",\"label\":\"SSH port\",\"value\":\"${FIXED_SSH_PORT}\",\"type\":\"text\",\"i18n\":{\"fa\":{\"label\":\"پورت SSH\"}}},{\"key\":\"management_command\",\"label\":\"Terminal management command\",\"value\":\"iranux /help\",\"type\":\"copy\",\"i18n\":{\"fa\":{\"label\":\"فرمان مدیریت در ترمینال\"}}},{\"key\":\"bot_command\",\"label\":\"Telegram bot menu command\",\"value\":\"/menu\",\"type\":\"copy\",\"i18n\":{\"fa\":{\"label\":\"فرمان منوی ربات تلگرام\"}}}]}"
 echo "__IRANUX_REACHED_END_V1__"

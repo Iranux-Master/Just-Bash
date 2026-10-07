@@ -4,13 +4,20 @@
 {
   "standard": {
     "name": "iranux-script-metadata",
-    "schema_version": "1.1"
+    "schema_version": "1.2"
   },
   "script": {
     "id": "x-ui-alireza-installer",
     "name": "x-ui Alireza Installer",
     "version": "1.0.0",
-    "description": "Installs or updates the alireza0/x-ui panel, downloads the selected release, installs the systemd service, migrates settings, and optionally restores a previous failed installation."
+    "description": "Installs or updates the alireza0/x-ui panel: updates system packages, downloads the selected release, installs the systemd service, migrates settings, and can restore a backup left by a failed installation. On a new installation it creates a random admin login, port and panel path.",
+    "estimated_minutes": 5,
+    "i18n": {
+      "fa": {
+        "name": "نصب پنل x-ui (Alireza)",
+        "description": "پنل alireza0/x-ui را نصب یا به‌روزرسانی می‌کند: بسته‌های سیستم را به‌روزرسانی می‌کند، نسخه‌ی انتخاب‌شده را دانلود می‌کند، سرویس systemd را نصب می‌کند، تنظیمات را منتقل می‌کند و می‌تواند نسخه‌ی پشتیبانِ مانده از یک نصب ناموفق را بازیابی کند. در نصب جدید، نام کاربری، رمز عبور، پورت و مسیر پنل به‌صورت تصادفی ساخته می‌شود."
+      }
+    }
   },
   "risk": {
     "level": "high"
@@ -34,9 +41,6 @@
       "opensuse-tumbleweed"
     ],
     "required_commands": [
-      "wget",
-      "curl",
-      "tar",
       "systemctl"
     ]
   },
@@ -60,20 +64,27 @@ IRANUX_METADATA
 : <<'IRANUX_PARAM'
 {
   "name": "target_version",
-  "label": "Target Version",
-  "description": "Optional x-ui release tag to install. Leave empty to install the latest release from GitHub.",
+  "label": "Version",
+  "description": "Enter the x-ui release to install, for example v1.8.0. Leave empty to install the latest release.",
   "type": "string",
   "required": false,
   "placeholder": "v1.8.0",
-  "group": "Download Settings"
+  "group": "Download Settings",
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "نسخه",
+      "description": "نسخه‌ی x-ui را که می‌خواهید نصب شود وارد کنید، مثلاً v1.8.0. برای نصب آخرین نسخه، خالی بگذارید."
+    }
+  }
 }
 IRANUX_PARAM
 
 : <<'IRANUX_PARAM'
 {
   "name": "restore_backup",
-  "label": "Restore Failed Installation Backup",
-  "description": "If a previous /usr/local/x-ui-backup directory exists, choose whether to restore it instead of continuing a fresh installation.",
+  "label": "Restore backup of a failed installation",
+  "description": "If a backup from a failed installation exists in /usr/local/x-ui-backup, choose whether to restore it instead of installing again. If you choose No, that backup is deleted after the new installation.",
   "type": "enum",
   "required": true,
   "default": "N",
@@ -87,15 +98,21 @@ IRANUX_PARAM
       "value": "N"
     }
   ],
-  "group": "Recovery Settings"
+  "group": "Recovery Settings",
+  "i18n": {
+    "fa": {
+      "label": "بازیابی نسخه‌ی پشتیبان نصب ناموفق",
+      "description": "اگر نسخه‌ی پشتیبانی از یک نصب ناموفق در /usr/local/x-ui-backup وجود دارد، انتخاب کنید که به‌جای نصب دوباره، بازیابی شود یا نه. اگر «خیر» را انتخاب کنید، آن نسخه‌ی پشتیبان بعد از نصب جدید حذف می‌شود."
+    }
+  }
 }
 IRANUX_PARAM
 
 : <<'IRANUX_PARAM'
 {
   "name": "customize_panel_port",
-  "label": "Customize Panel Port",
-  "description": "Choose whether to set a custom panel port during fresh installation. If No, a random port is generated.",
+  "label": "Choose the panel port",
+  "description": "Choose whether to use your own panel port on a new installation. If you choose No, a random port is used.",
   "type": "enum",
   "required": true,
   "default": "N",
@@ -109,22 +126,34 @@ IRANUX_PARAM
       "value": "N"
     }
   ],
-  "group": "Panel Settings"
+  "group": "Panel Settings",
+  "i18n": {
+    "fa": {
+      "label": "انتخاب پورت پنل",
+      "description": "انتخاب کنید که در نصب جدید، پورت دلخواه شما برای پنل استفاده شود یا نه. اگر «خیر» را انتخاب کنید، یک پورت تصادفی استفاده می‌شود."
+    }
+  }
 }
 IRANUX_PARAM
 
 : <<'IRANUX_PARAM'
 {
   "name": "panel_port",
-  "label": "Panel Port",
-  "description": "Optional panel port used only when Customize Panel Port is Yes. If empty, the script generates a random port.",
+  "label": "Panel port",
+  "description": "Enter the port the panel listens on. Used only when Choose the panel port is Yes. Leave empty to get a random port.",
   "type": "port",
   "required": false,
   "example": 54321,
-  "group": "Panel Settings"
+  "group": "Panel Settings",
+  "generate": "port",
+  "i18n": {
+    "fa": {
+      "label": "پورت پنل",
+      "description": "پورتی را که پنل روی آن کار می‌کند وارد کنید. فقط وقتی استفاده می‌شود که «انتخاب پورت پنل» روی «بله» باشد. برای گرفتن یک پورت تصادفی، خالی بگذارید."
+    }
+  }
 }
 IRANUX_PARAM
-
 
 red='\033[0;31m'
 green='\033[0;32m'
@@ -132,6 +161,38 @@ yellow='\033[0;33m'
 plain='\033[0m'
 
 cur_dir=$(pwd)
+
+# Iranux: JSON string escaping for the IRANUX_RESULT line (specification Appendix C).
+iranux_json_string() {
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  s="${s//$'\t'/\\t}"
+  s="${s//$'\r'/\\r}"
+  s="${s//$'\n'/\\n}"
+  printf '"%s"' "$s"
+}
+
+# Iranux: values reported in the IRANUX_RESULT line (empty values are left out).
+iranux_result_panel_port=""
+iranux_result_panel_path=""
+iranux_result_username=""
+iranux_result_credentials_file=""
+iranux_outputs=""
+iranux_add_output() {
+    # $1 key, $2 English label, $3 value, $4 type, $5 Persian label
+    [[ -n "$3" ]] || return 0
+    [[ -z "$iranux_outputs" ]] || iranux_outputs+=","
+    iranux_outputs+="{\"key\":\"$1\",\"label\":\"$2\",\"value\":$(iranux_json_string "$3"),\"type\":\"$4\",\"i18n\":{\"fa\":{\"label\":\"$5\"}}}"
+}
+iranux_print_result() {
+    iranux_add_output "panel_port" "Panel port" "$iranux_result_panel_port" "text" "پورت پنل"
+    iranux_add_output "panel_path" "Panel path" "$iranux_result_panel_path" "text" "مسیر پنل"
+    iranux_add_output "admin_username" "Admin username" "$iranux_result_username" "copy" "نام کاربری مدیر"
+    iranux_add_output "credentials_file" "Login details file" "$iranux_result_credentials_file" "text" "فایل اطلاعات ورود"
+    iranux_add_output "installed_version" "Installed version" "$last_version" "text" "نسخه‌ی نصب‌شده"
+    echo "IRANUX_RESULT {\"outputs\":[${iranux_outputs}]}"
+}
 
 # check root
 [[ $EUID -ne 0 ]] && echo -e "${red}Fatal error: ${plain} Please run this script with root privilege \n " && exit 1
@@ -222,10 +283,15 @@ config_after_install() {
             /usr/local/x-ui/x-ui setting -username "${config_username}" -password "${config_password}" -port "${config_port}" -webBasePath "${config_webBasePath}"
             echo -e "This is a fresh installation, generating random login info for security concerns:"
             echo -e "###############################################"
-            echo -e "${green}Username: ${config_username}${plain}"
-            echo -e "${green}Password: ${config_password}${plain}"
+            # Iranux: the generated login is written to a root-only file instead of the log.
+            ( umask 077; printf 'username: %s\npassword: %s\n' "${config_username}" "${config_password}" > /root/x-ui-credentials.txt )
+            echo -e "${green}Username and password saved to /root/x-ui-credentials.txt (readable by root only)${plain}"
             echo -e "${green}Port: ${config_port}${plain}"
             echo -e "${green}WebBasePath: ${config_webBasePath}${plain}"
+            iranux_result_username="$config_username"
+            iranux_result_panel_port="$config_port"
+            iranux_result_panel_path="$config_webBasePath"
+            iranux_result_credentials_file="/root/x-ui-credentials.txt"
             echo -e "###############################################"
             echo -e "${yellow}If you forgot your login info, you can type 'x-ui settings' to check${plain}"
         else
@@ -233,6 +299,8 @@ config_after_install() {
             echo -e "${yellow}WebBasePath is missing or too short. Generating a new one...${plain}"
             /usr/local/x-ui/x-ui setting -webBasePath "${config_webBasePath}"
             echo -e "${green}New WebBasePath: ${config_webBasePath}${plain}"
+            iranux_result_username="$existing_username"
+            iranux_result_panel_path="$config_webBasePath"
         fi
     else
         if [[ "$existing_username" == "admin" && "$existing_password" == "admin" ]]; then
@@ -243,12 +311,18 @@ config_after_install() {
             /usr/local/x-ui/x-ui setting -username "${config_username}" -password "${config_password}"
             echo -e "Generated new random login credentials:"
             echo -e "###############################################"
-            echo -e "${green}Username: ${config_username}${plain}"
-            echo -e "${green}Password: ${config_password}${plain}"
+            # Iranux: the generated login is written to a root-only file instead of the log.
+            ( umask 077; printf 'username: %s\npassword: %s\n' "${config_username}" "${config_password}" > /root/x-ui-credentials.txt )
+            echo -e "${green}Username and password saved to /root/x-ui-credentials.txt (readable by root only)${plain}"
+            iranux_result_username="$config_username"
+            iranux_result_panel_path="$existing_webBasePath"
+            iranux_result_credentials_file="/root/x-ui-credentials.txt"
             echo -e "###############################################"
             echo -e "${yellow}If you forgot your login info, you can type 'x-ui settings' to check${plain}"
         else
             echo -e "${green}Username, Password, and WebBasePath are properly set. Exiting...${plain}"
+            iranux_result_username="$existing_username"
+            iranux_result_panel_path="$existing_webBasePath"
         fi
     fi
 
@@ -265,6 +339,7 @@ install_x-ui() {
             mv /usr/local/x-ui-backup/ /usr/local/x-ui/ -f
             systemctl start x-ui
             echo -e "${green}previous installed x-ui restored successfully${plain}, it is up and running now..."
+            iranux_print_result
             echo "__IRANUX_REACHED_END_V1__"
             exit 0
         else
@@ -290,7 +365,7 @@ install_x-ui() {
         last_version=$1
         url="https://github.com/alireza0/x-ui/releases/download/${last_version}/x-ui-linux-$(arch).tar.gz"
         echo -e "Beginning to install x-ui $1"
-        wget -N --no-check-certificate -O /usr/local/x-ui-linux-$(arch).tar.gz ${url}
+        wget -N --no-check-certificate -O /usr/local/x-ui-linux-$(arch).tar.gz "${url}"
         if [[ $? -ne 0 ]]; then
             echo -e "${red}download x-ui $1 failed,please check the version exists${plain}"
             exit 1
@@ -356,7 +431,12 @@ install_x-ui() {
 echo -e "${green}Running...${plain}"
 TARGET_VERSION="${TARGET_VERSION:-${1:-}}"
 install_dependencies
-install_x-ui ${TARGET_VERSION}
+if [[ -n "${TARGET_VERSION}" ]]; then
+    install_x-ui "${TARGET_VERSION}"
+else
+    install_x-ui
+fi
 
+iranux_print_result
 echo "__IRANUX_REACHED_END_V1__"
 exit 0

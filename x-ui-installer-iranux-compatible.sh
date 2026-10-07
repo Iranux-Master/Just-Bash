@@ -4,13 +4,20 @@
 {
   "standard": {
     "name": "iranux-script-metadata",
-    "schema_version": "1.1"
+    "schema_version": "1.2"
   },
   "script": {
     "id": "x-ui-installer-iranux-compatible",
-    "name": "3x-ui Iranux-Compatible Installer",
+    "name": "3x-ui Installer",
     "version": "1.0.0",
-    "description": "Installs 3x-ui and configures database, panel port, SSL certificate options, and system service without interactive installation prompts."
+    "description": "Installs the 3x-ui panel as a system service with a random admin login and panel path, and can set up PostgreSQL and an SSL certificate without prompts. On RHEL, Fedora, CentOS and Arch it first upgrades all system packages. A reinstall deletes the existing x-ui program folder, and a Let's Encrypt domain certificate deletes and recreates the folder /root/cert/<your domain>.",
+    "estimated_minutes": 10,
+    "i18n": {
+      "fa": {
+        "name": "نصب پنل 3x-ui",
+        "description": "پنل 3x-ui را به‌صورت سرویس سیستم نصب می‌کند و نام کاربری، رمز عبور و مسیر پنل را تصادفی می‌سازد. در صورت انتخاب، PostgreSQL و گواهی SSL را هم بدون پرسش تنظیم می‌کند. در RHEL، Fedora، CentOS و Arch ابتدا همه‌ی بسته‌های سیستم به‌روزرسانی می‌شود. در نصب دوباره، پوشه‌ی برنامه‌ی قبلی x-ui پاک می‌شود و گواهی دامنه‌ی Let's Encrypt، پوشه‌ی /root/cert/<دامنه‌ی شما> را پاک می‌کند و از نو می‌سازد."
+      }
+    }
   },
   "risk": {
     "level": "dangerous"
@@ -37,11 +44,7 @@
       "opensuse-leap",
       "alpine"
     ],
-    "required_commands": [
-      "curl",
-      "tar",
-      "openssl"
-    ]
+    "required_commands": []
   },
   "ui": {
     "category": {
@@ -67,13 +70,20 @@ IRANUX_METADATA
 : <<'IRANUX_PARAM'
 {
   "name": "xui_main_folder",
-  "label": "x-ui Installation Directory",
-  "description": "Main directory where x-ui will be installed.",
+  "label": "Installation folder",
+  "description": "Folder where the x-ui program files are installed. The last part of the path must be x-ui. If this folder already exists, it is deleted and replaced. Keep the default unless you need another folder.",
   "type": "path",
   "required": true,
   "default": "/usr/local/x-ui",
   "example": "/usr/local/x-ui",
-  "group": "Installation Paths"
+  "group": "Installation Paths",
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "پوشه‌ی نصب",
+      "description": "پوشه‌ای که فایل‌های برنامه‌ی x-ui در آن نصب می‌شود. بخش آخر مسیر باید x-ui باشد. اگر این پوشه از قبل وجود داشته باشد، پاک و جایگزین می‌شود. اگر به پوشه‌ی دیگری نیاز ندارید، مقدار پیش‌فرض را نگه دارید."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -82,27 +92,42 @@ XUI_MAIN_FOLDER="${XUI_MAIN_FOLDER:-/usr/local/x-ui}"
 : <<'IRANUX_PARAM'
 {
   "name": "xui_service_dir",
-  "label": "Systemd Service Directory",
-  "description": "Directory where the x-ui systemd service file will be installed.",
+  "label": "Service file folder",
+  "description": "Folder where the x-ui systemd service file is placed. Keep the default unless your system keeps service files in another folder.",
   "type": "path",
   "required": true,
   "default": "/etc/systemd/system",
   "example": "/etc/systemd/system",
-  "group": "Installation Paths"
+  "group": "Installation Paths",
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "پوشه‌ی فایل سرویس",
+      "description": "پوشه‌ای که فایل سرویس systemd برای x-ui در آن قرار می‌گیرد. اگر سیستم شما فایل‌های سرویس را در پوشه‌ی دیگری نگه نمی‌دارد، مقدار پیش‌فرض را نگه دارید."
+    }
+  }
 }
 IRANUX_PARAM
 
-XUI_SERVICE="${XUI_SERVICE:-/etc/systemd/system}"
+XUI_SERVICE_DIR="${XUI_SERVICE_DIR:-${XUI_SERVICE:-/etc/systemd/system}}"
+XUI_SERVICE="${XUI_SERVICE_DIR}"
 
 : <<'IRANUX_PARAM'
 {
   "name": "xui_version",
-  "label": "x-ui Version",
-  "description": "Optional x-ui release version to install, for example v2.3.5. Leave empty to install the latest release.",
+  "label": "Version",
+  "description": "The 3x-ui release to install, v2.3.5 or newer. Leave empty to install the latest release.",
   "type": "string",
   "required": false,
   "placeholder": "v2.3.5",
-  "group": "Installation Settings"
+  "group": "Installation Settings",
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "نسخه",
+      "description": "نسخه‌ی 3x-ui که نصب می‌شود؛ v2.3.5 یا جدیدتر. برای نصب آخرین نسخه، خالی بگذارید."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -111,12 +136,19 @@ XUI_VERSION="${XUI_VERSION:-${1:-}}"
 : <<'IRANUX_PARAM'
 {
   "name": "server_ipv4",
-  "label": "Server Public IPv4",
-  "description": "Optional server public IPv4 address. Used if automatic public IP detection fails.",
+  "label": "Server IPv4 address",
+  "description": "Your server's public IPv4 address. It is used only if the address cannot be found automatically. Optional.",
   "type": "ipv4",
   "required": false,
   "example": "203.0.113.10",
-  "group": "Network Settings"
+  "group": "Network Settings",
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "آدرس IPv4 سرور",
+      "description": "آدرس IPv4 عمومی سرور شما. فقط وقتی استفاده می‌شود که این آدرس به‌طور خودکار پیدا نشود. اختیاری است."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -125,24 +157,28 @@ SERVER_IPV4="${SERVER_IPV4:-}"
 : <<'IRANUX_PARAM'
 {
   "name": "database_type",
-  "label": "Database Type",
-  "description": "Choose the database type for x-ui.",
+  "label": "Database",
+  "description": "Choose where the panel stores its data. SQLite needs no setup and suits fewer than 1000 clients. PostgreSQL suits many clients or nodes. Used on a new installation only.",
   "type": "enum",
   "required": true,
   "default": "1",
+  "group": "Database Settings",
   "options": [
     {
       "label": "SQLite",
-      "value": "1",
-      "description": "Default option. Recommended for smaller installations."
+      "value": "1"
     },
     {
       "label": "PostgreSQL",
-      "value": "2",
-      "description": "Recommended for high client counts or many nodes."
+      "value": "2"
     }
   ],
-  "group": "Database Settings"
+  "i18n": {
+    "fa": {
+      "label": "پایگاه داده",
+      "description": "انتخاب کنید پنل اطلاعات خود را کجا نگه دارد. SQLite به تنظیم نیاز ندارد و برای کمتر از ۱۰۰۰ کاربر مناسب است. PostgreSQL برای تعداد زیاد کاربر یا نود مناسب است. فقط در نصب جدید اعمال می‌شود."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -151,22 +187,29 @@ DATABASE_TYPE="${DATABASE_TYPE:-1}"
 : <<'IRANUX_PARAM'
 {
   "name": "postgres_mode",
-  "label": "PostgreSQL Mode",
-  "description": "Choose how PostgreSQL should be configured if PostgreSQL is selected.",
+  "label": "PostgreSQL setup",
+  "description": "Used only with PostgreSQL. Choose whether PostgreSQL is installed on this server or an existing PostgreSQL server is used.",
   "type": "enum",
   "required": false,
   "default": "1",
+  "group": "Database Settings",
   "options": [
     {
-      "label": "Install PostgreSQL locally",
+      "label": "Install on this server",
       "value": "1"
     },
     {
-      "label": "Use external PostgreSQL DSN",
+      "label": "Use an existing server",
       "value": "2"
     }
   ],
-  "group": "Database Settings"
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "نحوه‌ی راه‌اندازی PostgreSQL",
+      "description": "فقط برای PostgreSQL استفاده می‌شود. انتخاب کنید PostgreSQL روی همین سرور نصب شود یا از یک سرور PostgreSQL موجود استفاده شود."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -175,13 +218,19 @@ POSTGRES_MODE="${POSTGRES_MODE:-1}"
 : <<'IRANUX_PARAM'
 {
   "name": "postgres_dsn",
-  "label": "PostgreSQL DSN",
-  "description": "External PostgreSQL DSN. Required only when PostgreSQL Mode is external.",
+  "label": "PostgreSQL connection address",
+  "description": "Connection address of your existing PostgreSQL server, including its user name and password. Needed only when you use an existing server.",
   "type": "secret",
   "required": false,
   "placeholder": "postgres://user:pass@host:5432/xui?sslmode=disable",
-  "sensitive": true,
-  "group": "Database Settings"
+  "group": "Database Settings",
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "آدرس اتصال PostgreSQL",
+      "description": "آدرس اتصال سرور PostgreSQL موجود شما، همراه با نام کاربری و رمز عبور آن. فقط وقتی لازم است که از سرور موجود استفاده کنید."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -190,30 +239,37 @@ POSTGRES_DSN="${POSTGRES_DSN:-}"
 : <<'IRANUX_PARAM'
 {
   "name": "postgres_failure_action",
-  "label": "PostgreSQL Failure Action",
-  "description": "Action to take if local PostgreSQL installation fails.",
+  "label": "If PostgreSQL installation fails",
+  "description": "Choose what happens if installing PostgreSQL on this server fails. Try again repeats the installation until it succeeds.",
   "type": "enum",
   "required": false,
   "default": "4",
+  "group": "Database Settings",
   "options": [
     {
-      "label": "Retry local install",
+      "label": "Try again",
       "value": "1"
     },
     {
-      "label": "Use external DSN",
+      "label": "Use the connection address",
       "value": "2"
     },
     {
-      "label": "Abort installation",
+      "label": "Stop the installation",
       "value": "3"
     },
     {
-      "label": "Fall back to SQLite",
+      "label": "Use SQLite instead",
       "value": "4"
     }
   ],
-  "group": "Database Settings"
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "در صورت خطا در نصب PostgreSQL",
+      "description": "انتخاب کنید اگر نصب PostgreSQL روی این سرور ناموفق بود، چه اتفاقی بیفتد. گزینه‌ی Try again نصب را تا وقتی موفق شود تکرار می‌کند."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -222,11 +278,12 @@ POSTGRES_FAILURE_ACTION="${POSTGRES_FAILURE_ACTION:-4}"
 : <<'IRANUX_PARAM'
 {
   "name": "customize_panel_port",
-  "label": "Customize Panel Port",
-  "description": "Choose whether to set a custom panel port. If No, a random port is generated.",
+  "label": "Choose panel port",
+  "description": "Choose Yes to set the panel port yourself. Choose No to get a random port. Used on a new installation only.",
   "type": "enum",
   "required": true,
   "default": "N",
+  "group": "Panel Settings",
   "options": [
     {
       "label": "Yes",
@@ -237,7 +294,12 @@ POSTGRES_FAILURE_ACTION="${POSTGRES_FAILURE_ACTION:-4}"
       "value": "N"
     }
   ],
-  "group": "Panel Settings"
+  "i18n": {
+    "fa": {
+      "label": "انتخاب پورت پنل",
+      "description": "اگر می‌خواهید پورت پنل را خودتان تعیین کنید، «بله» را انتخاب کنید. با انتخاب «خیر»، یک پورت تصادفی ساخته می‌شود. فقط در نصب جدید اعمال می‌شود."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -246,12 +308,18 @@ CUSTOMIZE_PANEL_PORT="${CUSTOMIZE_PANEL_PORT:-N}"
 : <<'IRANUX_PARAM'
 {
   "name": "panel_port",
-  "label": "Panel Port",
-  "description": "Custom panel port. Used only when Customize Panel Port is Yes.",
+  "label": "Panel port",
+  "description": "The port the panel listens on. Needed only when Choose panel port is Yes.",
   "type": "port",
   "required": false,
-  "example": 2053,
-  "group": "Panel Settings"
+  "example": "2053",
+  "group": "Panel Settings",
+  "i18n": {
+    "fa": {
+      "label": "پورت پنل",
+      "description": "پورتی که پنل روی آن در دسترس است. فقط وقتی لازم است که «انتخاب پورت پنل» روی «بله» باشد."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -260,30 +328,36 @@ PANEL_PORT="${PANEL_PORT:-}"
 : <<'IRANUX_PARAM'
 {
   "name": "ssl_setup_method",
-  "label": "SSL Setup Method",
-  "description": "Choose how SSL should be configured for the x-ui panel.",
+  "label": "SSL certificate",
+  "description": "Choose how the panel gets an SSL certificate when it has none. Both Let's Encrypt options need port 80 open. No SSL is safe only behind a reverse proxy or an SSH tunnel.",
   "type": "enum",
   "required": true,
   "default": "2",
+  "group": "SSL Settings",
   "options": [
     {
-      "label": "Let's Encrypt for Domain",
+      "label": "Let's Encrypt for a domain",
       "value": "1"
     },
     {
-      "label": "Let's Encrypt for IP Address",
+      "label": "Let's Encrypt for the server IP",
       "value": "2"
     },
     {
-      "label": "Custom SSL Certificate",
+      "label": "Use my own certificate",
       "value": "3"
     },
     {
-      "label": "Skip SSL",
+      "label": "No SSL",
       "value": "4"
     }
   ],
-  "group": "SSL Settings"
+  "i18n": {
+    "fa": {
+      "label": "گواهی SSL",
+      "description": "انتخاب کنید اگر پنل گواهی SSL ندارد، گواهی آن چگونه تهیه شود. هر دو گزینه‌ی Let's Encrypt به پورت 80 باز نیاز دارند. گزینه‌ی No SSL فقط پشت reverse proxy یا تونل SSH امن است."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -292,12 +366,18 @@ SSL_SETUP_METHOD="${SSL_SETUP_METHOD:-2}"
 : <<'IRANUX_PARAM'
 {
   "name": "ssl_domain",
-  "label": "SSL Domain",
-  "description": "Domain name used for Let's Encrypt domain certificate.",
+  "label": "Domain",
+  "description": "Your domain for the Let's Encrypt domain certificate. It must point to this server. Needed only for that option.",
   "type": "domain",
   "required": false,
   "example": "panel.example.com",
-  "group": "SSL Settings"
+  "group": "SSL Settings",
+  "i18n": {
+    "fa": {
+      "label": "دامنه",
+      "description": "دامنه‌ی شما برای گواهی دامنه‌ی Let's Encrypt. این دامنه باید به همین سرور اشاره کند. فقط برای همین گزینه لازم است."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -306,12 +386,19 @@ SSL_DOMAIN="${SSL_DOMAIN:-}"
 : <<'IRANUX_PARAM'
 {
   "name": "ssl_http_port",
-  "label": "Domain Certificate HTTP-01 Port",
-  "description": "Local standalone HTTP port used by acme.sh for domain certificate issuance.",
+  "label": "Domain certificate check port",
+  "description": "Port on this server that acme.sh listens on while Let's Encrypt checks your domain. Keep 80 unless port 80 is forwarded to another port.",
   "type": "port",
   "required": false,
   "default": 80,
-  "group": "SSL Settings"
+  "group": "SSL Settings",
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "پورت بررسی گواهی دامنه",
+      "description": "پورتی روی این سرور که acme.sh هنگام بررسی دامنه توسط Let's Encrypt روی آن منتظر می‌ماند. اگر پورت 80 به پورت دیگری هدایت نشده است، 80 را نگه دارید."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -320,12 +407,19 @@ SSL_HTTP_PORT="${SSL_HTTP_PORT:-80}"
 : <<'IRANUX_PARAM'
 {
   "name": "ip_cert_http_port",
-  "label": "IP Certificate HTTP-01 Port",
-  "description": "Local standalone HTTP port used by acme.sh for IP certificate issuance.",
+  "label": "IP certificate check port",
+  "description": "Port on this server that acme.sh listens on while Let's Encrypt checks the server IP. Keep 80 unless port 80 is forwarded to another port.",
   "type": "port",
   "required": false,
   "default": 80,
-  "group": "SSL Settings"
+  "group": "SSL Settings",
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "پورت بررسی گواهی IP",
+      "description": "پورتی روی این سرور که acme.sh هنگام بررسی IP سرور توسط Let's Encrypt روی آن منتظر می‌ماند. اگر پورت 80 به پورت دیگری هدایت نشده است، 80 را نگه دارید."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -334,11 +428,18 @@ IP_CERT_HTTP_PORT="${IP_CERT_HTTP_PORT:-80}"
 : <<'IRANUX_PARAM'
 {
   "name": "ip_cert_alt_http_port",
-  "label": "Alternative IP Certificate Port",
-  "description": "Alternative local HTTP-01 port if the selected IP certificate port is already in use.",
+  "label": "Backup IP certificate check port",
+  "description": "Port used for the IP certificate check when the port above is busy. If you leave it empty and that port is busy, the IP certificate is not created.",
   "type": "port",
   "required": false,
-  "group": "SSL Settings"
+  "group": "SSL Settings",
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "پورت جایگزین بررسی گواهی IP",
+      "description": "اگر پورت بالا مشغول باشد، این پورت برای بررسی گواهی IP استفاده می‌شود. اگر خالی بگذارید و آن پورت مشغول باشد، گواهی IP ساخته نمی‌شود."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -347,12 +448,19 @@ IP_CERT_ALT_HTTP_PORT="${IP_CERT_ALT_HTTP_PORT:-}"
 : <<'IRANUX_PARAM'
 {
   "name": "ssl_ipv6_address",
-  "label": "SSL IPv6 Address",
-  "description": "Optional IPv6 address to include in the Let's Encrypt IP certificate.",
+  "label": "Server IPv6 address",
+  "description": "IPv6 address of this server to add to the Let's Encrypt IP certificate. Optional.",
   "type": "ipv6",
   "required": false,
   "example": "2001:db8::10",
-  "group": "SSL Settings"
+  "group": "SSL Settings",
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "آدرس IPv6 سرور",
+      "description": "آدرس IPv6 این سرور که به گواهی IP از Let's Encrypt اضافه می‌شود. اختیاری است."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -361,12 +469,19 @@ SSL_IPV6_ADDRESS="${SSL_IPV6_ADDRESS:-}"
 : <<'IRANUX_PARAM'
 {
   "name": "custom_ssl_domain",
-  "label": "Custom SSL Domain",
-  "description": "Domain name covered by the custom certificate.",
+  "label": "Domain of your certificate",
+  "description": "Domain your own certificate was issued for. It is used in the panel address. Leave empty to use the server IP.",
   "type": "domain",
   "required": false,
   "example": "panel.example.com",
-  "group": "Custom SSL Settings"
+  "group": "Custom SSL Settings",
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "دامنه‌ی گواهی شما",
+      "description": "دامنه‌ای که گواهی شما برای آن صادر شده است. این دامنه در آدرس پنل استفاده می‌شود. برای استفاده از IP سرور، خالی بگذارید."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -375,12 +490,19 @@ CUSTOM_SSL_DOMAIN="${CUSTOM_SSL_DOMAIN:-}"
 : <<'IRANUX_PARAM'
 {
   "name": "custom_cert_path",
-  "label": "Custom Certificate Path",
-  "description": "Path to an existing certificate file, such as fullchain.pem or .crt.",
+  "label": "Certificate file path",
+  "description": "Full path on this server to your certificate file, such as fullchain.pem or a .crt file. Needed only for Use my own certificate.",
   "type": "path",
   "required": false,
   "example": "/root/cert/panel.example.com/fullchain.pem",
-  "group": "Custom SSL Settings"
+  "group": "Custom SSL Settings",
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "مسیر فایل گواهی",
+      "description": "مسیر کامل فایل گواهی شما روی همین سرور، مانند fullchain.pem یا یک فایل .crt. فقط برای گزینه‌ی Use my own certificate لازم است."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -389,13 +511,19 @@ CUSTOM_CERT_PATH="${CUSTOM_CERT_PATH:-}"
 : <<'IRANUX_PARAM'
 {
   "name": "custom_key_path",
-  "label": "Custom Private Key Path",
-  "description": "Path to the private key file for the custom SSL certificate.",
-  "type": "private_key",
+  "label": "Private key file path",
+  "description": "Full path on this server to the private key file of your certificate. Needed only for Use my own certificate.",
+  "type": "path",
   "required": false,
-  "sensitive": true,
   "example": "/root/cert/panel.example.com/privkey.pem",
-  "group": "Custom SSL Settings"
+  "group": "Custom SSL Settings",
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "مسیر فایل کلید خصوصی",
+      "description": "مسیر کامل فایل کلید خصوصی گواهی شما روی همین سرور. فقط برای گزینه‌ی Use my own certificate لازم است."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -404,11 +532,12 @@ CUSTOM_KEY_PATH="${CUSTOM_KEY_PATH:-}"
 : <<'IRANUX_PARAM'
 {
   "name": "bind_panel_localhost",
-  "label": "Bind HTTP Panel to Localhost",
-  "description": "When SSL is skipped, choose whether the panel should bind to 127.0.0.1 only.",
+  "label": "Panel on localhost only",
+  "description": "Used only with No SSL. Choose Yes to make the panel reachable only from the server itself, for example through an SSH tunnel.",
   "type": "enum",
   "required": false,
   "default": "N",
+  "group": "SSL Settings",
   "options": [
     {
       "label": "Yes",
@@ -419,7 +548,13 @@ CUSTOM_KEY_PATH="${CUSTOM_KEY_PATH:-}"
       "value": "N"
     }
   ],
-  "group": "SSL Settings"
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "پنل فقط روی localhost",
+      "description": "فقط برای گزینه‌ی No SSL استفاده می‌شود. با انتخاب «بله»، پنل فقط از خود سرور در دسترس است، مثلاً از طریق تونل SSH."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -428,11 +563,12 @@ BIND_PANEL_LOCALHOST="${BIND_PANEL_LOCALHOST:-N}"
 : <<'IRANUX_PARAM'
 {
   "name": "modify_acme_reloadcmd",
-  "label": "Modify ACME Reload Command",
-  "description": "Choose whether to modify the acme.sh reload command for domain certificates.",
+  "label": "Change certificate reload command",
+  "description": "Used only with the domain certificate. Choose Yes to change the command that runs after each certificate renewal.",
   "type": "enum",
   "required": false,
   "default": "N",
+  "group": "ACME Settings",
   "options": [
     {
       "label": "Yes",
@@ -443,7 +579,13 @@ BIND_PANEL_LOCALHOST="${BIND_PANEL_LOCALHOST:-N}"
       "value": "N"
     }
   ],
-  "group": "ACME Settings"
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "تغییر فرمان بارگذاری مجدد گواهی",
+      "description": "فقط برای گواهی دامنه استفاده می‌شود. با انتخاب «بله»، فرمانی که بعد از هر تمدید گواهی اجرا می‌شود تغییر می‌کند."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -452,26 +594,33 @@ MODIFY_ACME_RELOADCMD="${MODIFY_ACME_RELOADCMD:-N}"
 : <<'IRANUX_PARAM'
 {
   "name": "acme_reloadcmd_choice",
-  "label": "ACME Reload Command Choice",
-  "description": "Reload command option used only when Modify ACME Reload Command is Yes.",
+  "label": "Certificate reload command",
+  "description": "Choose the command that runs after each certificate renewal. Used only when Change certificate reload command is Yes.",
   "type": "enum",
   "required": false,
   "default": "0",
+  "group": "ACME Settings",
   "options": [
     {
-      "label": "Keep default reload command",
+      "label": "Keep the default",
       "value": "0"
     },
     {
-      "label": "Reload nginx and restart x-ui",
+      "label": "Reload Nginx and restart x-ui",
       "value": "1"
     },
     {
-      "label": "Custom reload command",
+      "label": "My own command",
       "value": "2"
     }
   ],
-  "group": "ACME Settings"
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "فرمان بارگذاری مجدد گواهی",
+      "description": "فرمانی را که بعد از هر تمدید گواهی اجرا می‌شود انتخاب کنید. فقط وقتی استفاده می‌شود که «تغییر فرمان بارگذاری مجدد گواهی» روی «بله» باشد."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -480,12 +629,19 @@ ACME_RELOADCMD_CHOICE="${ACME_RELOADCMD_CHOICE:-0}"
 : <<'IRANUX_PARAM'
 {
   "name": "custom_acme_reloadcmd",
-  "label": "Custom ACME Reload Command",
-  "description": "Custom acme.sh reload command. Used only when ACME Reload Command Choice is Custom.",
+  "label": "Your reload command",
+  "description": "The command that runs after each certificate renewal. Needed only when you choose My own command.",
   "type": "string",
   "required": false,
   "example": "systemctl reload nginx ; systemctl restart x-ui",
-  "group": "ACME Settings"
+  "group": "ACME Settings",
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "فرمان دلخواه بارگذاری مجدد",
+      "description": "فرمانی که بعد از هر تمدید گواهی اجرا می‌شود. فقط وقتی لازم است که گزینه‌ی My own command را انتخاب کنید."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -494,11 +650,12 @@ CUSTOM_ACME_RELOADCMD="${CUSTOM_ACME_RELOADCMD:-}"
 : <<'IRANUX_PARAM'
 {
   "name": "set_certificate_for_panel",
-  "label": "Set Certificate for Panel",
-  "description": "Choose whether the issued domain certificate should be configured for the x-ui panel.",
+  "label": "Use certificate for panel",
+  "description": "Used only with the domain certificate. Choose Yes to set the new certificate on the panel.",
   "type": "enum",
   "required": false,
   "default": "Y",
+  "group": "SSL Settings",
   "options": [
     {
       "label": "Yes",
@@ -509,7 +666,13 @@ CUSTOM_ACME_RELOADCMD="${CUSTOM_ACME_RELOADCMD:-}"
       "value": "N"
     }
   ],
-  "group": "SSL Settings"
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "استفاده از گواهی برای پنل",
+      "description": "فقط برای گواهی دامنه استفاده می‌شود. با انتخاب «بله»، گواهی جدید روی پنل تنظیم می‌شود."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -525,6 +688,24 @@ green='\033[0;32m'
 blue='\033[0;34m'
 yellow='\033[0;33m'
 plain='\033[0m'
+
+# Iranux result helpers (specification Appendix C)
+iranux_json_string() {
+    local s="$1"
+    s="${s//\\/\\\\}"
+    s="${s//\"/\\\"}"
+    s="${s//$'\t'/\\t}"
+    s="${s//$'\r'/\\r}"
+    s="${s//$'\n'/\\n}"
+    printf '"%s"' "$s"
+}
+IRANUX_RESULT_ITEMS=""
+# Adds one output (key, label, Persian label, type, value); an empty value is left out.
+iranux_result_add() {
+    [[ -z "$5" ]] && return 0
+    [[ -n "${IRANUX_RESULT_ITEMS}" ]] && IRANUX_RESULT_ITEMS+=","
+    IRANUX_RESULT_ITEMS+="{\"key\":\"$1\",\"label\":\"$2\",\"value\":$(iranux_json_string "$5"),\"type\":\"$4\",\"i18n\":{\"fa\":{\"label\":\"$3\"}}}"
+}
 
 cur_dir=$(pwd)
 
@@ -588,7 +769,7 @@ is_port_in_use() {
         return
     fi
     if command -v lsof > /dev/null 2>&1; then
-        lsof -nP -iTCP:${port} -sTCP:LISTEN > /dev/null 2>&1 && return 0
+        lsof -nP -iTCP:"${port}" -sTCP:LISTEN > /dev/null 2>&1 && return 0
     fi
     return 1
 }
@@ -778,7 +959,7 @@ setup_ssl_certificate() {
     local webKeyFile="/root/cert/${domain}/privkey.pem"
 
     if [[ -f "$webCertFile" && -f "$webKeyFile" ]]; then
-        ${xui_folder}/x-ui cert -webCert "$webCertFile" -webCertKey "$webKeyFile" > /dev/null 2>&1
+        "${xui_folder}/x-ui" cert -webCert "$webCertFile" -webCertKey "$webKeyFile" > /dev/null 2>&1
         echo -e "${green}SSL certificate installed and configured successfully!${plain}"
         return 0
     else
@@ -822,9 +1003,9 @@ setup_ip_certificate() {
     mkdir -p "$certDir"
 
     # Build domain arguments
-    local domain_args="-d ${ipv4}"
+    local domain_args=(-d "${ipv4}")
     if [[ -n "$ipv6" ]] && is_ipv6 "$ipv6"; then
-        domain_args="${domain_args} -d ${ipv6}"
+        domain_args+=(-d "${ipv6}")
         echo -e "${green}Including IPv6 address: ${ipv6}${plain}"
     fi
 
@@ -870,20 +1051,20 @@ setup_ip_certificate() {
     ~/.acme.sh/acme.sh --set-default-ca --server letsencrypt --force > /dev/null 2>&1
 
     ~/.acme.sh/acme.sh --issue \
-        ${domain_args} \
+        "${domain_args[@]}" \
         --standalone \
         --server letsencrypt \
         --certificate-profile shortlived \
         --days 6 \
-        --httpport ${WebPort} \
+        --httpport "${WebPort}" \
         --force
 
     if [ $? -ne 0 ]; then
         echo -e "${red}Failed to issue IP certificate${plain}"
         echo -e "${yellow}Please ensure port ${WebPort} is reachable (or forwarded from external port 80)${plain}"
         # Cleanup acme.sh data for both IPv4 and IPv6 if specified
-        rm -rf ~/.acme.sh/${ipv4} 2> /dev/null
-        [[ -n "$ipv6" ]] && rm -rf ~/.acme.sh/${ipv6} 2> /dev/null
+        rm -rf ~/.acme.sh/"${ipv4}" 2> /dev/null
+        [[ -n "$ipv6" ]] && rm -rf ~/.acme.sh/"${ipv6}" 2> /dev/null
         rm -rf ${certDir} 2> /dev/null
         return 1
     fi
@@ -893,7 +1074,7 @@ setup_ip_certificate() {
     # Install certificate
     # Note: acme.sh may report "Reload error" and exit non-zero if reloadcmd fails,
     # but the cert files are still installed. We check for files instead of exit code.
-    ~/.acme.sh/acme.sh --installcert -d ${ipv4} \
+    ~/.acme.sh/acme.sh --installcert -d "${ipv4}" \
         --key-file "${certDir}/privkey.pem" \
         --fullchain-file "${certDir}/fullchain.pem" \
         --reloadcmd "${reloadCmd}" 2>&1 || true
@@ -902,8 +1083,8 @@ setup_ip_certificate() {
     if [[ ! -f "${certDir}/fullchain.pem" || ! -f "${certDir}/privkey.pem" ]]; then
         echo -e "${red}Certificate files not found after installation${plain}"
         # Cleanup acme.sh data for both IPv4 and IPv6 if specified
-        rm -rf ~/.acme.sh/${ipv4} 2> /dev/null
-        [[ -n "$ipv6" ]] && rm -rf ~/.acme.sh/${ipv6} 2> /dev/null
+        rm -rf ~/.acme.sh/"${ipv4}" 2> /dev/null
+        [[ -n "$ipv6" ]] && rm -rf ~/.acme.sh/"${ipv6}" 2> /dev/null
         rm -rf ${certDir} 2> /dev/null
         return 1
     fi
@@ -919,7 +1100,7 @@ setup_ip_certificate() {
 
     # Configure panel to use the certificate
     echo -e "${green}Setting certificate paths for the panel...${plain}"
-    ${xui_folder}/x-ui cert -webCert "${certDir}/fullchain.pem" -webCertKey "${certDir}/privkey.pem"
+    "${xui_folder}/x-ui" cert -webCert "${certDir}/fullchain.pem" -webCertKey "${certDir}/privkey.pem"
 
     if [ $? -ne 0 ]; then
         echo -e "${yellow}Warning: Could not set certificate paths automatically${plain}"
@@ -938,8 +1119,8 @@ setup_ip_certificate() {
 
 # Comprehensive manual SSL certificate issuance via acme.sh
 ssl_cert_issue() {
-    local existing_webBasePath=$(${xui_folder}/x-ui setting -show true | grep 'webBasePath:' | awk -F': ' '{print $2}' | tr -d '[:space:]' | sed 's#^/##')
-    local existing_port=$(${xui_folder}/x-ui setting -show true | grep 'port:' | awk -F': ' '{print $2}' | tr -d '[:space:]')
+    local existing_webBasePath=$("${xui_folder}/x-ui" setting -show true | grep 'webBasePath:' | awk -F': ' '{print $2}' | tr -d '[:space:]' | sed 's#^/##')
+    local existing_port=$("${xui_folder}/x-ui" setting -show true | grep 'port:' | awk -F': ' '{print $2}' | tr -d '[:space:]')
 
     # check for acme.sh first
     if ! command -v ~/.acme.sh/acme.sh &> /dev/null; then
@@ -1006,10 +1187,10 @@ ssl_cert_issue() {
     if [[ ${cert_exists} -eq 0 ]]; then
         # issue the certificate
         ~/.acme.sh/acme.sh --set-default-ca --server letsencrypt --force
-        ~/.acme.sh/acme.sh --issue -d ${domain} --listen-v6 --standalone --httpport ${WebPort} --force
+        ~/.acme.sh/acme.sh --issue -d "${domain}" --listen-v6 --standalone --httpport "${WebPort}" --force
         if [ $? -ne 0 ]; then
             echo -e "${red}Issuing certificate failed, please check logs.${plain}"
-            rm -rf ~/.acme.sh/${domain}
+            rm -rf ~/.acme.sh/"${domain}"
             systemctl start x-ui 2> /dev/null || rc-service x-ui start 2> /dev/null
             return 1
         else
@@ -1047,9 +1228,9 @@ ssl_cert_issue() {
 
     # install the certificate
     local installOutput=""
-    installOutput=$(~/.acme.sh/acme.sh --installcert -d ${domain} \
-        --key-file /root/cert/${domain}/privkey.pem \
-        --fullchain-file /root/cert/${domain}/fullchain.pem --reloadcmd "${reloadCmd}" 2>&1)
+    installOutput=$(~/.acme.sh/acme.sh --installcert -d "${domain}" \
+        --key-file "/root/cert/${domain}/privkey.pem" \
+        --fullchain-file "/root/cert/${domain}/fullchain.pem" --reloadcmd "${reloadCmd}" 2>&1)
     local installRc=$?
     echo "${installOutput}"
 
@@ -1063,7 +1244,7 @@ ssl_cert_issue() {
     else
         echo -e "${red}Installing certificate failed, exiting.${plain}"
         if [[ ${cert_exists} -eq 0 ]]; then
-            rm -rf ~/.acme.sh/${domain}
+            rm -rf ~/.acme.sh/"${domain}"
         fi
         systemctl start x-ui 2> /dev/null || rc-service x-ui start 2> /dev/null
         return 1
@@ -1073,16 +1254,16 @@ ssl_cert_issue() {
     ~/.acme.sh/acme.sh --upgrade --auto-upgrade
     if [ $? -ne 0 ]; then
         echo -e "${yellow}Auto renew setup had issues, certificate details:${plain}"
-        ls -lah /root/cert/${domain}/
+        ls -lah "/root/cert/${domain}/"
         # Secure permissions: private key readable only by owner
-        chmod 600 $certPath/privkey.pem 2> /dev/null
-        chmod 644 $certPath/fullchain.pem 2> /dev/null
+        chmod 600 "$certPath"/privkey.pem 2> /dev/null
+        chmod 644 "$certPath"/fullchain.pem 2> /dev/null
     else
         echo -e "${green}Auto renew succeeded, certificate details:${plain}"
-        ls -lah /root/cert/${domain}/
+        ls -lah "/root/cert/${domain}/"
         # Secure permissions: private key readable only by owner
-        chmod 600 $certPath/privkey.pem 2> /dev/null
-        chmod 644 $certPath/fullchain.pem 2> /dev/null
+        chmod 600 "$certPath"/privkey.pem 2> /dev/null
+        chmod 644 "$certPath"/fullchain.pem 2> /dev/null
     fi
 
     # start panel
@@ -1095,7 +1276,7 @@ ssl_cert_issue() {
         local webKeyFile="/root/cert/${domain}/privkey.pem"
 
         if [[ -f "$webCertFile" && -f "$webKeyFile" ]]; then
-            ${xui_folder}/x-ui cert -webCert "$webCertFile" -webCertKey "$webKeyFile"
+            "${xui_folder}/x-ui" cert -webCert "$webCertFile" -webCertKey "$webKeyFile"
             echo -e "${green}Certificate paths set for the panel${plain}"
             echo -e "${green}Certificate File: $webCertFile${plain}"
             echo -e "${green}Private Key File: $webKeyFile${plain}"
@@ -1226,7 +1407,7 @@ prompt_and_setup_ssl() {
             fi
 
             # 3.4 Apply Settings via x-ui binary
-            ${xui_folder}/x-ui cert -webCert "$custom_cert" -webCertKey "$custom_key" > /dev/null 2>&1
+            "${xui_folder}/x-ui" cert -webCert "$custom_cert" -webCertKey "$custom_key" > /dev/null 2>&1
 
             # Set SSL_HOST for composing Panel URL
             if [[ -n "$custom_domain" ]]; then
@@ -1254,7 +1435,7 @@ prompt_and_setup_ssl() {
 
             local bind_local="${BIND_PANEL_LOCALHOST:-N}"
             if [[ "$bind_local" == "y" || "$bind_local" == "Y" ]]; then
-                ${xui_folder}/x-ui setting -listenIP "127.0.0.1" > /dev/null 2>&1
+                "${xui_folder}/x-ui" setting -listenIP "127.0.0.1" > /dev/null 2>&1
                 SSL_HOST="127.0.0.1"
                 echo -e "${green}✓ Panel bound to 127.0.0.1 only. It is now unreachable from the public internet.${plain}"
                 echo ""
@@ -1282,11 +1463,11 @@ prompt_and_setup_ssl() {
 }
 
 config_after_install() {
-    local existing_hasDefaultCredential=$(${xui_folder}/x-ui setting -show true | grep -Eo 'hasDefaultCredential: .+' | awk '{print $2}')
-    local existing_webBasePath=$(${xui_folder}/x-ui setting -show true | grep -Eo 'webBasePath: .+' | awk '{print $2}' | sed 's#^/##')
-    local existing_port=$(${xui_folder}/x-ui setting -show true | grep -Eo 'port: .+' | awk '{print $2}')
+    local existing_hasDefaultCredential=$("${xui_folder}/x-ui" setting -show true | grep -Eo 'hasDefaultCredential: .+' | awk '{print $2}')
+    local existing_webBasePath=$("${xui_folder}/x-ui" setting -show true | grep -Eo 'webBasePath: .+' | awk '{print $2}' | sed 's#^/##')
+    local existing_port=$("${xui_folder}/x-ui" setting -show true | grep -Eo 'port: .+' | awk '{print $2}')
     # Properly detect empty cert by checking if cert: line exists and has content after it
-    local existing_cert=$(${xui_folder}/x-ui setting -getCert true | grep 'cert:' | awk -F': ' '{print $2}' | tr -d '[:space:]')
+    local existing_cert=$("${xui_folder}/x-ui" setting -getCert true | grep 'cert:' | awk -F': ' '{print $2}' | tr -d '[:space:]')
     local URL_lists=(
         "https://api4.ipify.org"
         "https://ipv4.icanhazip.com"
@@ -1415,7 +1596,7 @@ EOF
                 echo -e "${yellow}Generated random port: ${config_port}${plain}"
             fi
 
-            ${xui_folder}/x-ui setting -username "${config_username}" -password "${config_password}" -port "${config_port}" -webBasePath "${config_webBasePath}"
+            "${xui_folder}/x-ui" setting -username "${config_username}" -password "${config_password}" -port "${config_port}" -webBasePath "${config_webBasePath}"
 
             echo ""
             echo -e "${green}═══════════════════════════════════════════${plain}"
@@ -1429,7 +1610,22 @@ EOF
             prompt_and_setup_ssl "${config_port}" "${config_webBasePath}" "${server_ip}"
 
             # Retrieve the API token for display
-            local config_apiToken=$(${xui_folder}/x-ui setting -getApiToken true | grep -Eo 'apiToken: .+' | awk '{print $2}')
+            local config_apiToken=$("${xui_folder}/x-ui" setting -getApiToken true | grep -Eo 'apiToken: .+' | awk '{print $2}')
+
+            # Iranux: generated secrets go to a root-only file instead of the log.
+            (
+                umask 077
+                printf 'Username:    %s\nPassword:    %s\nPort:        %s\nWebBasePath: %s\nDatabase:    %s\nAccess URL:  %s\nAPI Token:   %s\n' \
+                    "${config_username}" "${config_password}" "${config_port}" "${config_webBasePath}" "${db_label}" \
+                    "${SSL_SCHEME}://${SSL_HOST}:${config_port}/${config_webBasePath}" "${config_apiToken}" > /root/x-ui-credentials.txt
+            )
+            IRANUX_R_CREDS="/root/x-ui-credentials.txt"
+            IRANUX_R_USER="${config_username}"
+            IRANUX_R_PORT="${config_port}"
+            IRANUX_R_PATH="${config_webBasePath}"
+            IRANUX_R_DB="${db_label}"
+            IRANUX_R_SCHEME="${SSL_SCHEME}"
+            IRANUX_R_HOST="${SSL_HOST}"
 
             # Display final credentials and access information
             echo ""
@@ -1437,12 +1633,12 @@ EOF
             echo -e "${green}     Panel Installation Complete!         ${plain}"
             echo -e "${green}═══════════════════════════════════════════${plain}"
             echo -e "${green}Username:    ${config_username}${plain}"
-            echo -e "${green}Password:    ${config_password}${plain}"
+            echo -e "${green}Password:    saved in /root/x-ui-credentials.txt${plain}"
             echo -e "${green}Port:        ${config_port}${plain}"
             echo -e "${green}WebBasePath: ${config_webBasePath}${plain}"
             echo -e "${green}Database:    ${db_label}${plain}"
             echo -e "${green}Access URL:  ${SSL_SCHEME}://${SSL_HOST}:${config_port}/${config_webBasePath}${plain}"
-            echo -e "${green}API Token:   ${config_apiToken}${plain}"
+            echo -e "${green}API Token:   saved in /root/x-ui-credentials.txt${plain}"
             echo -e "${green}═══════════════════════════════════════════${plain}"
             echo -e "${yellow}⚠ IMPORTANT: Save these credentials securely!${plain}"
             if [[ "$SSL_SCHEME" == "https" ]]; then
@@ -1453,7 +1649,7 @@ EOF
         else
             local config_webBasePath=$(gen_random_string 18)
             echo -e "${yellow}WebBasePath is missing or too short. Generating a new one...${plain}"
-            ${xui_folder}/x-ui setting -webBasePath "${config_webBasePath}"
+            "${xui_folder}/x-ui" setting -webBasePath "${config_webBasePath}"
             echo -e "${green}New WebBasePath: ${config_webBasePath}${plain}"
 
             # If the panel is already installed but no certificate is configured, prompt for SSL now
@@ -1466,10 +1662,16 @@ EOF
                 echo ""
                 prompt_and_setup_ssl "${existing_port}" "${config_webBasePath}" "${server_ip}"
                 echo -e "${green}Access URL:  ${SSL_SCHEME}://${SSL_HOST}:${existing_port}/${config_webBasePath}${plain}"
+                IRANUX_R_SCHEME="${SSL_SCHEME}"
+                IRANUX_R_HOST="${SSL_HOST}"
             else
                 # If a cert already exists, just show the access URL
                 echo -e "${green}Access URL: https://${server_ip}:${existing_port}/${config_webBasePath}${plain}"
+                IRANUX_R_SCHEME="https"
+                IRANUX_R_HOST="${server_ip}"
             fi
+            IRANUX_R_PORT="${existing_port}"
+            IRANUX_R_PATH="${config_webBasePath}"
         fi
     else
         if [[ "$existing_hasDefaultCredential" == "true" ]]; then
@@ -1477,19 +1679,26 @@ EOF
             local config_password=$(gen_random_string 10)
 
             echo -e "${yellow}Default credentials detected. Security update required...${plain}"
-            ${xui_folder}/x-ui setting -username "${config_username}" -password "${config_password}"
+            "${xui_folder}/x-ui" setting -username "${config_username}" -password "${config_password}"
             echo -e "Generated new random login credentials:"
             echo -e "###############################################"
             echo -e "${green}Username: ${config_username}${plain}"
-            echo -e "${green}Password: ${config_password}${plain}"
+            # Iranux: the generated password goes to a root-only file instead of the log.
+            (
+                umask 077
+                printf 'Username: %s\nPassword: %s\n' "${config_username}" "${config_password}" > /root/x-ui-credentials.txt
+            )
+            echo -e "${green}Password: saved in /root/x-ui-credentials.txt${plain}"
             echo -e "###############################################"
+            IRANUX_R_CREDS="/root/x-ui-credentials.txt"
+            IRANUX_R_USER="${config_username}"
         else
             echo -e "${green}Username, Password, and WebBasePath are properly set.${plain}"
         fi
 
         # Existing install: if no cert configured, prompt user for SSL setup
         # Properly detect empty cert by checking if cert: line exists and has content after it
-        existing_cert=$(${xui_folder}/x-ui setting -getCert true | grep 'cert:' | awk -F': ' '{print $2}' | tr -d '[:space:]')
+        existing_cert=$("${xui_folder}/x-ui" setting -getCert true | grep 'cert:' | awk -F': ' '{print $2}' | tr -d '[:space:]')
         if [[ -z "$existing_cert" ]]; then
             echo ""
             echo -e "${green}═══════════════════════════════════════════${plain}"
@@ -1499,16 +1708,20 @@ EOF
             echo ""
             prompt_and_setup_ssl "${existing_port}" "${existing_webBasePath}" "${server_ip}"
             echo -e "${green}Access URL:  ${SSL_SCHEME}://${SSL_HOST}:${existing_port}/${existing_webBasePath}${plain}"
+            IRANUX_R_SCHEME="${SSL_SCHEME}"
+            IRANUX_R_HOST="${SSL_HOST}"
         else
             echo -e "${green}SSL certificate already configured. No action needed.${plain}"
         fi
+        IRANUX_R_PORT="${existing_port}"
+        IRANUX_R_PATH="${existing_webBasePath}"
     fi
 
-    ${xui_folder}/x-ui migrate
+    "${xui_folder}/x-ui" migrate
 }
 
 install_x-ui() {
-    cd ${xui_folder%/x-ui}/
+    cd "${xui_folder%/x-ui}/"
 
     # Download resources
     if [ $# == 0 ]; then
@@ -1522,7 +1735,7 @@ install_x-ui() {
             fi
         fi
         echo -e "Got x-ui latest version: ${tag_version}, beginning the installation..."
-        curl -4fLRo ${xui_folder}-linux-$(arch).tar.gz https://github.com/MHSanaei/3x-ui/releases/download/${tag_version}/x-ui-linux-$(arch).tar.gz
+        curl -4fLRo "${xui_folder}-linux-$(arch).tar.gz" https://github.com/MHSanaei/3x-ui/releases/download/${tag_version}/x-ui-linux-$(arch).tar.gz
         if [[ $? -ne 0 ]]; then
             echo -e "${red}Downloading x-ui failed, please be sure that your server can access GitHub ${plain}"
             exit 1
@@ -1539,7 +1752,7 @@ install_x-ui() {
 
         url="https://github.com/MHSanaei/3x-ui/releases/download/${tag_version}/x-ui-linux-$(arch).tar.gz"
         echo -e "Beginning to install x-ui $1"
-        curl -4fLRo ${xui_folder}-linux-$(arch).tar.gz ${url}
+        curl -4fLRo "${xui_folder}-linux-$(arch).tar.gz" "${url}"
         if [[ $? -ne 0 ]]; then
             echo -e "${red}Download x-ui $1 failed, please check if the version exists ${plain}"
             exit 1
@@ -1558,7 +1771,7 @@ install_x-ui() {
         else
             systemctl stop x-ui
         fi
-        rm ${xui_folder}/ -rf
+        rm "${xui_folder}/" -rf
     fi
 
     # Extract resources and set permissions
@@ -1611,7 +1824,7 @@ install_x-ui() {
 
         if [ -f "x-ui.service" ]; then
             echo -e "${green}Found x-ui.service in extracted files, installing...${plain}"
-            cp -f x-ui.service ${xui_service}/ > /dev/null 2>&1
+            cp -f x-ui.service "${xui_service}/" > /dev/null 2>&1
             if [[ $? -eq 0 ]]; then
                 service_installed=true
             fi
@@ -1622,7 +1835,7 @@ install_x-ui() {
                 ubuntu | debian | armbian)
                     if [ -f "x-ui.service.debian" ]; then
                         echo -e "${green}Found x-ui.service.debian in extracted files, installing...${plain}"
-                        cp -f x-ui.service.debian ${xui_service}/x-ui.service > /dev/null 2>&1
+                        cp -f x-ui.service.debian "${xui_service}/x-ui.service" > /dev/null 2>&1
                         if [[ $? -eq 0 ]]; then
                             service_installed=true
                         fi
@@ -1631,7 +1844,7 @@ install_x-ui() {
                 arch | manjaro | parch)
                     if [ -f "x-ui.service.arch" ]; then
                         echo -e "${green}Found x-ui.service.arch in extracted files, installing...${plain}"
-                        cp -f x-ui.service.arch ${xui_service}/x-ui.service > /dev/null 2>&1
+                        cp -f x-ui.service.arch "${xui_service}/x-ui.service" > /dev/null 2>&1
                         if [[ $? -eq 0 ]]; then
                             service_installed=true
                         fi
@@ -1640,7 +1853,7 @@ install_x-ui() {
                 *)
                     if [ -f "x-ui.service.rhel" ]; then
                         echo -e "${green}Found x-ui.service.rhel in extracted files, installing...${plain}"
-                        cp -f x-ui.service.rhel ${xui_service}/x-ui.service > /dev/null 2>&1
+                        cp -f x-ui.service.rhel "${xui_service}/x-ui.service" > /dev/null 2>&1
                         if [[ $? -eq 0 ]]; then
                             service_installed=true
                         fi
@@ -1654,13 +1867,13 @@ install_x-ui() {
             echo -e "${yellow}Service files not found in tar.gz, downloading from GitHub...${plain}"
             case "${release}" in
                 ubuntu | debian | armbian)
-                    curl -4fLRo ${xui_service}/x-ui.service https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.service.debian > /dev/null 2>&1
+                    curl -4fLRo "${xui_service}/x-ui.service" https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.service.debian > /dev/null 2>&1
                     ;;
                 arch | manjaro | parch)
-                    curl -4fLRo ${xui_service}/x-ui.service https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.service.arch > /dev/null 2>&1
+                    curl -4fLRo "${xui_service}/x-ui.service" https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.service.arch > /dev/null 2>&1
                     ;;
                 *)
-                    curl -4fLRo ${xui_service}/x-ui.service https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.service.rhel > /dev/null 2>&1
+                    curl -4fLRo "${xui_service}/x-ui.service" https://raw.githubusercontent.com/MHSanaei/3x-ui/main/x-ui.service.rhel > /dev/null 2>&1
                     ;;
             esac
 
@@ -1673,8 +1886,8 @@ install_x-ui() {
 
         if [ "$service_installed" = true ]; then
             echo -e "${green}Setting up systemd unit...${plain}"
-            chown root:root ${xui_service}/x-ui.service > /dev/null 2>&1
-            chmod 644 ${xui_service}/x-ui.service > /dev/null 2>&1
+            chown root:root "${xui_service}/x-ui.service" > /dev/null 2>&1
+            chmod 644 "${xui_service}/x-ui.service" > /dev/null 2>&1
             systemctl daemon-reload
             systemctl enable x-ui
             systemctl start x-ui
@@ -1713,5 +1926,19 @@ if [[ -n "${XUI_VERSION}" ]]; then
 else
     install_x-ui
 fi
+IRANUX_R_VERSION="${tag_version:-}"
+if [[ -n "${IRANUX_R_HOST:-}" && -n "${IRANUX_R_PORT:-}" ]]; then
+    # A panel bound to localhost opens only through an SSH tunnel, so it is not a clickable link.
+    IRANUX_R_URL_TYPE="url"
+    [[ "${IRANUX_R_HOST}" == "127.0.0.1" ]] && IRANUX_R_URL_TYPE="text"
+    iranux_result_add "panel_url" "Panel address" "آدرس پنل" "${IRANUX_R_URL_TYPE}" "${IRANUX_R_SCHEME:-https}://${IRANUX_R_HOST}:${IRANUX_R_PORT}/${IRANUX_R_PATH:-}"
+fi
+iranux_result_add "panel_port" "Panel port" "پورت پنل" "copy" "${IRANUX_R_PORT:-}"
+iranux_result_add "panel_path" "Panel path" "مسیر پنل" "copy" "${IRANUX_R_PATH:-}"
+iranux_result_add "admin_username" "Admin username" "نام کاربری مدیر" "copy" "${IRANUX_R_USER:-}"
+iranux_result_add "credentials_file" "Login details file" "فایل اطلاعات ورود" "text" "${IRANUX_R_CREDS:-}"
+iranux_result_add "database" "Database" "پایگاه داده" "text" "${IRANUX_R_DB:-}"
+iranux_result_add "version" "Version" "نسخه" "text" "${IRANUX_R_VERSION}"
+echo "IRANUX_RESULT {\"outputs\":[${IRANUX_RESULT_ITEMS}]}"
 echo "__IRANUX_REACHED_END_V1__"
 exit 0

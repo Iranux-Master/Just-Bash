@@ -4,28 +4,32 @@
 {
   "standard": {
     "name": "iranux-script-metadata",
-    "schema_version": "1.1"
+    "schema_version": "1.2"
   },
   "script": {
     "id": "cloudflare-global-key-fixed-order-auto-parking",
     "name": "Cloudflare Global Key Fixed-Order Auto Parking",
     "version": "1.0.0",
-    "description": "Adds or reuses a Cloudflare full zone using Global API Key authentication, creates or updates fixed A and NS records, and uses fixed-order non-interactive inputs for domain, IPv4, account ID, email, and global API key."
+    "description": "Adds your domain to your Cloudflare account as a full zone with your account email and Global API Key, or uses the zone if it already exists. It points the domain and its ns subdomain to your server's IPv4 address (A records, proxy off) and delegates the v, vs, s, ss, t and ts subdomains to the ns subdomain (NS records). At the end it shows the name servers to set at your domain registrar. The API token script is safer, because a token can be limited to what it needs.",
+    "estimated_minutes": 2,
+    "i18n": {
+      "fa": {
+        "name": "پارک خودکار دامنه در Cloudflare با Global API Key",
+        "description": "دامنه‌ی شما را با ایمیل حساب و Global API Key به‌صورت zone کامل به حساب Cloudflare اضافه می‌کند، یا اگر از قبل باشد از همان استفاده می‌کند. دامنه و زیردامنه‌ی ns آن را به آدرس IPv4 سرور وصل می‌کند (رکورد A، پروکسی خاموش) و زیردامنه‌های v، vs، s، ss، t و ts را به زیردامنه‌ی ns واگذار می‌کند (رکورد NS). در پایان، نیم‌سرورهایی را که باید در سایت ثبت‌کننده‌ی دامنه تنظیم کنید نشان می‌دهد. اسکریپت نسخه‌ی توکن API امن‌تر است، چون دسترسی توکن را می‌توان محدود کرد."
+      }
+    }
   },
   "risk": {
     "level": "high"
   },
   "requirements": {
-    "requires_root": false,
+    "requires_root": true,
     "requires_internet": true,
     "supported_os": [
       "ubuntu",
       "debian"
     ],
-    "required_commands": [
-      "curl",
-      "jq"
-    ]
+    "required_commands": []
   },
   "ui": {
     "category": {
@@ -48,46 +52,55 @@ IRANUX_METADATA
 {
   "name": "cf_domain",
   "label": "Domain",
-  "description": "Root domain to add or manage in Cloudflare, for example amirab.sbs. The script normalizes URLs to a root hostname.",
+  "description": "Enter the main domain to add to Cloudflare, for example example.com. If you enter a web address, only the domain part is used.",
   "type": "domain",
   "required": true,
-  "example": "amirab.sbs",
-  "group": "DNS Settings"
+  "example": "example.com",
+  "group": "DNS Settings",
+  "i18n": { "fa": { "label": "دامنه", "description": "دامنه‌ی اصلی‌ای را که می‌خواهید به Cloudflare اضافه شود وارد کنید، مثلاً example.com. اگر آدرس کامل وارد کنید، فقط بخش دامنه‌ی آن استفاده می‌شود." } }
 }
 IRANUX_PARAM
 
 : <<'IRANUX_PARAM'
 {
   "name": "cf_server_ipv4",
-  "label": "Server IPv4 Address",
-  "description": "IPv4 address used for the root A record and ns A record.",
+  "label": "Server IPv4 address",
+  "description": "Enter the IPv4 address of your server. Your domain and its ns subdomain will point to this address.",
   "type": "ipv4",
   "required": true,
   "example": "192.0.2.10",
-  "group": "DNS Settings"
+  "group": "DNS Settings",
+  "i18n": { "fa": { "label": "آدرس IPv4 سرور", "description": "آدرس IPv4 سرور خود را وارد کنید. دامنه و زیردامنه‌ی ns آن به این آدرس اشاره می‌کنند." } }
 }
 IRANUX_PARAM
 
 : <<'IRANUX_PARAM'
 {
   "name": "cf_account_id",
-  "label": "Cloudflare Account ID",
-  "description": "Cloudflare account ID where the full zone should be created or managed.",
+  "label": "Cloudflare account ID",
+  "description": "Enter the ID of the Cloudflare account the domain should be added to. You can find it in the Cloudflare dashboard.",
   "type": "string",
   "required": true,
-  "group": "Cloudflare Credentials"
+  "group": "Cloudflare Credentials",
+  "i18n": { "fa": { "label": "شناسه‌ی حساب Cloudflare", "description": "شناسه‌ی حساب Cloudflare را که دامنه باید به آن اضافه شود وارد کنید. این شناسه را در داشبورد Cloudflare پیدا می‌کنید." } }
 }
 IRANUX_PARAM
 
 : <<'IRANUX_PARAM'
 {
   "name": "cf_email",
-  "label": "Cloudflare Account Email",
-  "description": "Cloudflare account email used with Global API Key authentication headers.",
+  "label": "Cloudflare account email",
+  "description": "Enter the email address you use to sign in to Cloudflare. It is sent together with the Global API Key.",
   "type": "email",
   "required": true,
   "example": "you@example.com",
-  "group": "Cloudflare Credentials"
+  "group": "Cloudflare Credentials",
+  "i18n": {
+    "fa": {
+      "label": "ایمیل حساب Cloudflare",
+      "description": "ایمیلی را که با آن وارد Cloudflare می‌شوید وارد کنید. این ایمیل همراه با Global API Key فرستاده می‌شود."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -95,11 +108,16 @@ IRANUX_PARAM
 {
   "name": "cf_global_api_key",
   "label": "Cloudflare Global API Key",
-  "description": "Cloudflare Global API Key used as X-Auth-Key. This value is highly sensitive and must not be logged or displayed.",
+  "description": "Enter the Global API Key of your Cloudflare account. It gives full access to your account, so keep it private. It is not shown in the log.",
   "type": "secret",
   "required": true,
-  "sensitive": true,
-  "group": "Cloudflare Credentials"
+  "group": "Cloudflare Credentials",
+  "i18n": {
+    "fa": {
+      "label": "Global API Key در Cloudflare",
+      "description": "Global API Key حساب Cloudflare خود را وارد کنید. این کلید به کل حساب شما دسترسی کامل می‌دهد، پس آن را به کسی ندهید. این کلید در گزارش اجرا نمایش داده نمی‌شود."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -148,7 +166,6 @@ FIXED_NS_RECORDS=("v" "vs" "s" "ss" "t" "ts")
 trap 'echo; echo "❌ Error on line $LINENO. Script stopped."; exit 1' ERR
 
 print_header() {
-  clear 2>/dev/null || true
   echo "============================================================"
   echo "  Cloudflare Global API Key Auto Parking"
   echo "============================================================"
@@ -553,6 +570,8 @@ main() {
   echo "Zone ID: $zone_id"
 
   print_cloudflare_name_servers "$zone_json"
+  IRANUX_RESULT_DOMAIN="$CF_DOMAIN"
+  IRANUX_RESULT_NAME_SERVERS="$(printf '%s' "$zone_json" | jq -r 'if (.result.name_servers | length) > 0 then (.result.name_servers | join(", ")) else "No name servers returned yet. Check the zone in Cloudflare dashboard." end')"
 
   root_a="$(fqdn_for_record "@" "$CF_DOMAIN")"
   ns_a="$(fqdn_for_record "ns" "$CF_DOMAIN")"
@@ -589,6 +608,20 @@ main() {
   echo "============================================================"
 }
 
+iranux_json_string() {
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  s="${s//$'\t'/\\t}"
+  s="${s//$'\r'/\\r}"
+  s="${s//$'\n'/\\n}"
+  printf '"%s"' "$s"
+}
+
+IRANUX_RESULT_DOMAIN=""
+IRANUX_RESULT_NAME_SERVERS=""
+
 main "$@"
+echo "IRANUX_RESULT {\"outputs\":[{\"key\":\"domain\",\"label\":\"Domain\",\"value\":$(iranux_json_string "$IRANUX_RESULT_DOMAIN"),\"type\":\"copy\",\"i18n\":{\"fa\":{\"label\":\"دامنه\"}}},{\"key\":\"name_servers\",\"label\":\"Name servers to set at your domain registrar\",\"value\":$(iranux_json_string "$IRANUX_RESULT_NAME_SERVERS"),\"type\":\"copy\",\"i18n\":{\"fa\":{\"label\":\"نیم‌سرورهایی که باید در سایت ثبت‌کننده‌ی دامنه تنظیم کنید\"}}}]}"
 echo "__IRANUX_REACHED_END_V1__"
 exit 0

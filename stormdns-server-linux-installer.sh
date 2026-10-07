@@ -4,13 +4,20 @@
 {
   "standard": {
     "name": "iranux-script-metadata",
-    "schema_version": "1.1"
+    "schema_version": "1.2"
   },
   "script": {
     "id": "stormdns-server-linux-installer",
     "name": "StormDNS Server Linux Installer",
     "version": "1.0.0",
-    "description": "Installs, locally installs, or uninstalls the StormDNS server on Linux, including dependency setup, firewall changes, kernel tuning, systemd services, release downloads, and optional domain configuration."
+    "description": "Installs, updates or uninstalls the StormDNS DNS tunnel server on Linux. To free port 53 it stops and disables other DNS services, changes or stops systemd-resolved and kills any process still using port 53; it also removes port 53 redirect rules, opens port 53 in the firewall, changes kernel and file limits, generates an encryption key and creates a systemd service. It also adds a service that blocks all outgoing TCP connections to port 53 from this server.",
+    "estimated_minutes": 5,
+    "i18n": {
+      "fa": {
+        "name": "نصب سرور StormDNS روی لینوکس",
+        "description": "سرور تونل DNS به نام StormDNS را روی لینوکس نصب، به‌روزرسانی یا حذف می‌کند. برای آزاد کردن پورت 53، سرویس‌های DNS دیگر را متوقف و غیرفعال می‌کند، systemd-resolved را تغییر می‌دهد یا متوقف می‌کند و هر برنامه‌ای را که از پورت 53 استفاده می‌کند می‌بندد. قانون‌های انتقال پورت 53 را حذف و این پورت را در فایروال باز می‌کند، تنظیمات هسته و محدودیت فایل‌ها را تغییر می‌دهد، کلید رمزنگاری می‌سازد و سرویس systemd می‌سازد. همچنین همه‌ی اتصال‌های TCP خروجی این سرور به پورت 53 را مسدود می‌کند."
+      }
+    }
   },
   "risk": {
     "level": "dangerous"
@@ -27,32 +34,7 @@
       "centos"
     ],
     "required_commands": [
-      "bash",
-      "command",
-      "id",
-      "grep",
-      "awk",
-      "sed",
-      "sort",
-      "head",
-      "find",
-      "xargs",
-      "ls",
-      "cp",
-      "mv",
-      "rm",
-      "ps",
-      "pgrep",
-      "kill",
-      "sleep",
-      "systemctl",
-      "sysctl",
-      "ss",
-      "uname",
-      "chmod",
-      "curl",
-      "wget",
-      "unzip"
+      "systemctl"
     ]
   },
   "ui": {
@@ -72,6 +54,105 @@
 }
 IRANUX_METADATA
 
+: <<'IRANUX_PARAM'
+{
+  "name": "action",
+  "label": "Action",
+  "description": "Choose whether to install or uninstall StormDNS. Install also updates an existing installation to the selected version and keeps your current settings if the new version can still use them.",
+  "type": "enum",
+  "required": true,
+  "default": "install",
+  "options": [
+    {
+      "label": "Install",
+      "value": "install"
+    },
+    {
+      "label": "Uninstall",
+      "value": "uninstall"
+    }
+  ],
+  "group": "Installation",
+  "i18n": {
+    "fa": {
+      "label": "عملیات",
+      "description": "انتخاب کنید StormDNS نصب شود یا حذف شود. اگر StormDNS از قبل نصب باشد، نصب آن را به نسخه‌ی انتخاب‌شده به‌روزرسانی می‌کند و اگر نسخه‌ی جدید بتواند از تنظیمات فعلی شما استفاده کند، این تنظیمات حفظ می‌شود."
+    }
+  }
+}
+IRANUX_PARAM
+
+: <<'IRANUX_PARAM'
+{
+  "name": "target_version",
+  "label": "Version",
+  "description": "Enter the StormDNS release tag to install, for example v1.2.3. Leave empty to install the latest release. Leave it empty when you uninstall.",
+  "type": "string",
+  "required": false,
+  "example": "v1.2.3",
+  "placeholder": "v1.2.3",
+  "validation": {
+    "pattern": "^[A-Za-z0-9._+-]+$"
+  },
+  "group": "Installation",
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "نسخه",
+      "description": "برچسب نسخه‌ای از StormDNS را که می‌خواهید نصب شود وارد کنید، مثلاً v1.2.3. برای نصب آخرین نسخه خالی بگذارید. هنگام حذف هم این را خالی بگذارید."
+    }
+  }
+}
+IRANUX_PARAM
+
+: <<'IRANUX_PARAM'
+{
+  "name": "local_mode",
+  "label": "Use local files",
+  "description": "Choose whether to install from a StormDNS server file and server_config.toml that are already in the installation folder, instead of downloading them. Do not combine this with a version.",
+  "type": "enum",
+  "required": false,
+  "default": "0",
+  "options": [
+    {
+      "label": "Download",
+      "value": "0"
+    },
+    {
+      "label": "Use local files",
+      "value": "1"
+    }
+  ],
+  "group": "Installation",
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "استفاده از فایل‌های محلی",
+      "description": "انتخاب کنید که به‌جای دانلود، از فایل سرور StormDNS و فایل server_config.toml که از قبل در پوشه‌ی نصب هستند استفاده شود. این گزینه را همراه با نسخه انتخاب نکنید."
+    }
+  }
+}
+IRANUX_PARAM
+
+: <<'IRANUX_PARAM'
+{
+  "name": "user_domain",
+  "label": "Tunnel domain",
+  "description": "Enter the domain (or subdomain) that points to this server with an NS record, for example vpn.example.com. It is needed for a new installation. It is written to server_config.toml only when no domain has been set there yet, so leave it empty if you already set one.",
+  "type": "domain",
+  "required": false,
+  "example": "vpn.example.com",
+  "placeholder": "vpn.example.com",
+  "group": "Tunnel",
+  "i18n": {
+    "fa": {
+      "label": "دامنه‌ی تونل",
+      "description": "دامنه (یا زیردامنه‌ای) را وارد کنید که با رکورد NS به این سرور اشاره می‌کند، مثلاً vpn.example.com. برای نصب جدید لازم است. این دامنه فقط وقتی در فایل server_config.toml نوشته می‌شود که هنوز دامنه‌ای در آن تنظیم نشده باشد؛ اگر قبلاً دامنه را تنظیم کرده‌اید، خالی بگذارید."
+    }
+  }
+}
+IRANUX_PARAM
+
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -90,6 +171,15 @@ log_success() { echo -e "${GREEN}[DONE]${NC} $1"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
 require_cmd() { command -v "$1" >/dev/null 2>&1 || log_error "Missing command: $1"; }
+iranux_json_string() {
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  s="${s//$'\t'/\\t}"
+  s="${s//$'\r'/\\r}"
+  s="${s//$'\n'/\\n}"
+  printf '"%s"' "$s"
+}
 backup_file_once() {
 local f="$1"
 [[ -f "$f" && ! -f "${f}.bak" ]] && cp -a "$f" "${f}.bak"
@@ -251,69 +341,9 @@ bash <(curl -Ls https://raw.githubusercontent.com/nullroute1970/StormDNS/main/se
 USAGE
 }
 
-: <<'IRANUX_PARAM'
-{
-"name": "action",
-"label": "Installer Action",
-"description": "Choose whether the script should install StormDNS or uninstall an existing StormDNS installation. The Bash script expects install or uninstall.",
-"type": "enum",
-"required": false,
-"default": "install",
-"options": [
-{
-"label": "Install",
-"value": "install"
-},
-{
-"label": "Uninstall",
-"value": "uninstall"
-}
-],
-"group": "Execution Mode"
-}
-IRANUX_PARAM
-
 ACTION="${ACTION:-install}"
 
-: <<'IRANUX_PARAM'
-{
-"name": "target_version",
-"label": "Target Version",
-"description": "Optional StormDNS release tag to install, for example v1.2.3. Leave empty to install the latest release.",
-"type": "string",
-"required": false,
-"example": "v1.2.3",
-"placeholder": "v1.2.3",
-"validation": {
-"pattern": "^[A-Za-z0-9._+-]+$"
-},
-"group": "Execution Mode"
-}
-IRANUX_PARAM
-
 TARGET_VERSION="${TARGET_VERSION:-}"
-
-: <<'IRANUX_PARAM'
-{
-"name": "local_mode",
-"label": "Local Offline Install",
-"description": "Choose whether to use local files instead of downloading from GitHub. The Bash script expects 1 for local mode or 0 for download mode.",
-"type": "enum",
-"required": false,
-"default": "0",
-"options": [
-{
-"label": "Download from GitHub",
-"value": "0"
-},
-{
-"label": "Use local files",
-"value": "1"
-}
-],
-"group": "Execution Mode"
-}
-IRANUX_PARAM
 
 LOCAL_MODE="${LOCAL_MODE:-0}"
 while [[ $# -gt 0 ]]; do
@@ -337,6 +367,7 @@ shift
 ;;
 -h|--help)
 print_usage
+echo "IRANUX_RESULT {\"outputs\":[]}"
 echo "__IRANUX_REACHED_END_V1__"
 exit 0
 ;;
@@ -490,6 +521,7 @@ echo -e "      Remove them manually if no longer needed."
 
 if [[ "$ACTION" == "uninstall" ]]; then
 do_uninstall
+echo "IRANUX_RESULT {\"outputs\":[{\"key\":\"install_dir\",\"label\":\"Cleaned installation folder\",\"value\":$(iranux_json_string "$INSTALL_DIR"),\"type\":\"text\",\"i18n\":{\"fa\":{\"label\":\"پوشه‌ی نصب پاک‌شده\"}}}]}"
 echo "__IRANUX_REACHED_END_V1__"
 exit 0
 fi
@@ -959,26 +991,15 @@ log_error "Backup config version is newer than the config template (backup=$BACK
 fi
 fi
 
-: <<'IRANUX_PARAM'
-{
-"name": "user_domain",
-"label": "NS Domain",
-"description": "Optional domain used to replace the default v.domain.com placeholder in server_config.toml.",
-"type": "domain",
-"required": true,
-"example": "vpn.example.com",
-"placeholder": "vpn.example.com",
-"group": "Configuration"
-}
-IRANUX_PARAM
-
 USER_DOMAIN="${USER_DOMAIN:-}"
+RESULT_DOMAIN=""
 
 if [[ -f "server_config.toml" ]] && grep -q '"v.domain.com"' server_config.toml; then
 echo -e "${YELLOW}${BOLD}Attention:${NC} Set your NS domain."
 if [[ -n "${USER_DOMAIN:-}" ]]; then
 escaped_domain="$(printf '%s' "$USER_DOMAIN" | sed -e 's/[\/&|]/\\&/g')"
 sed -i -E "s|^DOMAIN[[:space:]]*=.*$|DOMAIN = [\"${escaped_domain}\"]|" server_config.toml
+RESULT_DOMAIN="${USER_DOMAIN}"
 fi
 fi
 
@@ -1004,7 +1025,7 @@ log_error "Could not verify key generation. Ensure Port 53 is free."
 fi
 
 echo -e "${GREEN}${BOLD}------------------------------------------------------"
-echo -e "  YOUR ENCRYPTION KEY: ${NC}${CYAN}$(cat encrypt_key.txt 2>/dev/null)${NC}"
+echo -e "  YOUR ENCRYPTION KEY IS STORED IN: ${NC}${CYAN}${INSTALL_DIR}/encrypt_key.txt${NC}"
 echo -e "${GREEN}${BOLD}------------------------------------------------------${NC}"
 
 log_header "Installing Egress Filter (Block Outbound TCP/53)"
@@ -1123,5 +1144,10 @@ echo -e "${YELLOW}Final Note:${NC} If config changes, run: systemctl restart sto
 
 rm -f *.spec >/dev/null 2>&1 || true
 
+if [[ -n "${RESULT_DOMAIN:-}" ]]; then
+  echo "IRANUX_RESULT {\"outputs\":[{\"key\":\"tunnel_domain\",\"label\":\"Tunnel domain\",\"value\":$(iranux_json_string "$RESULT_DOMAIN"),\"type\":\"copy\",\"i18n\":{\"fa\":{\"label\":\"دامنه‌ی تونل\"}}},{\"key\":\"dns_port\",\"label\":\"DNS port (UDP/TCP)\",\"value\":\"53\",\"type\":\"text\",\"i18n\":{\"fa\":{\"label\":\"پورت DNS (UDP/TCP)\"}}},{\"key\":\"encryption_key_file\",\"label\":\"Encryption key file\",\"value\":$(iranux_json_string "${INSTALL_DIR}/encrypt_key.txt"),\"type\":\"text\",\"i18n\":{\"fa\":{\"label\":\"فایل کلید رمزنگاری\"}}},{\"key\":\"config_file\",\"label\":\"Configuration file\",\"value\":$(iranux_json_string "${INSTALL_DIR}/server_config.toml"),\"type\":\"copy\",\"i18n\":{\"fa\":{\"label\":\"فایل پیکربندی\"}}},{\"key\":\"service_name\",\"label\":\"Service name\",\"value\":\"stormdns\",\"type\":\"copy\",\"i18n\":{\"fa\":{\"label\":\"نام سرویس\"}}}]}"
+else
+  echo "IRANUX_RESULT {\"outputs\":[{\"key\":\"dns_port\",\"label\":\"DNS port (UDP/TCP)\",\"value\":\"53\",\"type\":\"text\",\"i18n\":{\"fa\":{\"label\":\"پورت DNS (UDP/TCP)\"}}},{\"key\":\"encryption_key_file\",\"label\":\"Encryption key file\",\"value\":$(iranux_json_string "${INSTALL_DIR}/encrypt_key.txt"),\"type\":\"text\",\"i18n\":{\"fa\":{\"label\":\"فایل کلید رمزنگاری\"}}},{\"key\":\"config_file\",\"label\":\"Configuration file\",\"value\":$(iranux_json_string "${INSTALL_DIR}/server_config.toml"),\"type\":\"copy\",\"i18n\":{\"fa\":{\"label\":\"فایل پیکربندی\"}}},{\"key\":\"service_name\",\"label\":\"Service name\",\"value\":\"stormdns\",\"type\":\"copy\",\"i18n\":{\"fa\":{\"label\":\"نام سرویس\"}}}]}"
+fi
 echo "__IRANUX_REACHED_END_V1__"
 exit 0

@@ -4,13 +4,20 @@
 {
   "standard": {
     "name": "iranux-script-metadata",
-    "schema_version": "1.1"
+    "schema_version": "1.2"
   },
   "script": {
     "id": "masterdnsvpn-server-linux-installer",
     "name": "MasterDnsVPN Server Linux Installer",
     "version": "1.0.0",
-    "description": "Installs or uninstalls MasterDnsVPN Server on Linux, prepares port 53, downloads the selected release binary, initializes encryption keys, configures firewall/kernel limits, and creates the systemd service."
+    "description": "Installs, updates or uninstalls the MasterDnsVPN DNS tunnel server on Linux. To free port 53 it stops and disables other DNS services, changes or stops systemd-resolved and kills any process still using port 53; it also removes port 53 redirect rules, opens port 53 in the firewall, changes kernel and file limits, generates an encryption key and creates a systemd service.",
+    "estimated_minutes": 5,
+    "i18n": {
+      "fa": {
+        "name": "نصب سرور MasterDnsVPN روی لینوکس",
+        "description": "سرور تونل DNS به نام MasterDnsVPN را روی لینوکس نصب، به‌روزرسانی یا حذف می‌کند. برای آزاد کردن پورت 53، سرویس‌های DNS دیگر را متوقف و غیرفعال می‌کند، systemd-resolved را تغییر می‌دهد یا متوقف می‌کند و هر برنامه‌ای را که از پورت 53 استفاده می‌کند می‌بندد. قانون‌های انتقال پورت 53 را حذف و این پورت را در فایروال باز می‌کند، تنظیمات هسته و محدودیت فایل‌ها را تغییر می‌دهد، کلید رمزنگاری می‌سازد و سرویس systemd می‌سازد."
+      }
+    }
   },
   "risk": {
     "level": "dangerous"
@@ -29,12 +36,7 @@
       "amzn"
     ],
     "required_commands": [
-      "curl",
-      "wget",
-      "unzip",
-      "systemctl",
-      "sysctl",
-      "ss"
+      "systemctl"
     ]
   },
   "ui": {
@@ -57,8 +59,8 @@ IRANUX_METADATA
 : <<'IRANUX_PARAM'
 {
   "name": "install_action",
-  "label": "Install Action",
-  "description": "Choose whether to install or uninstall MasterDnsVPN. This maps to the internal ACTION variable.",
+  "label": "Action",
+  "description": "Choose whether to install or uninstall MasterDnsVPN. Install also updates an existing installation to the selected version and keeps your current settings if the new version can still use them.",
   "type": "enum",
   "required": true,
   "default": "install",
@@ -72,31 +74,55 @@ IRANUX_METADATA
       "value": "uninstall"
     }
   ],
-  "group": "Execution Settings"
+  "group": "Installation",
+  "i18n": {
+    "fa": {
+      "label": "عملیات",
+      "description": "انتخاب کنید MasterDnsVPN نصب شود یا حذف شود. اگر MasterDnsVPN از قبل نصب باشد، نصب آن را به نسخه‌ی انتخاب‌شده به‌روزرسانی می‌کند و اگر نسخه‌ی جدید بتواند از تنظیمات فعلی شما استفاده کند، این تنظیمات حفظ می‌شود."
+    }
+  }
 }
 IRANUX_PARAM
 
 : <<'IRANUX_PARAM'
 {
   "name": "target_version",
-  "label": "Target Version",
-  "description": "Optional MasterDnsVPN release tag to install, for example v2026.04.12.234117-978faee. Leave empty to install the latest release.",
+  "label": "Version",
+  "description": "Enter the MasterDnsVPN release tag to install, for example v2026.04.12.234117-978faee. Leave empty to install the latest release. Leave it empty when you uninstall.",
   "type": "string",
   "required": false,
+  "example": "v2026.04.12.234117-978faee",
   "placeholder": "v2026.04.12.234117-978faee",
-  "group": "Execution Settings"
+  "validation": {
+    "pattern": "^[A-Za-z0-9._+-]+$"
+  },
+  "group": "Installation",
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "نسخه",
+      "description": "برچسب نسخه‌ای از MasterDnsVPN را که می‌خواهید نصب شود وارد کنید، مثلاً v2026.04.12.234117-978faee. برای نصب آخرین نسخه خالی بگذارید. هنگام حذف هم این را خالی بگذارید."
+    }
+  }
 }
 IRANUX_PARAM
 
 : <<'IRANUX_PARAM'
 {
   "name": "user_domain",
-  "label": "NS Domain",
-  "description": "Optional NS domain used to replace the default DOMAIN value in server_config.toml when the downloaded template still contains v.domain.com.",
+  "label": "Tunnel domain",
+  "description": "Enter the domain (or subdomain) that points to this server with an NS record, for example vpn.example.com. It is needed for a new installation. It is written to server_config.toml only when no domain has been set there yet, so leave it empty if you already set one.",
   "type": "domain",
   "required": false,
   "example": "vpn.example.com",
-  "group": "MasterDnsVPN Configuration"
+  "placeholder": "vpn.example.com",
+  "group": "Tunnel",
+  "i18n": {
+    "fa": {
+      "label": "دامنه‌ی تونل",
+      "description": "دامنه (یا زیردامنه‌ای) را وارد کنید که با رکورد NS به این سرور اشاره می‌کند، مثلاً vpn.example.com. برای نصب جدید لازم است. این دامنه فقط وقتی در فایل server_config.toml نوشته می‌شود که هنوز دامنه‌ای در آن تنظیم نشده باشد؛ اگر قبلاً دامنه را تنظیم کرده‌اید، خالی بگذارید."
+    }
+  }
 }
 IRANUX_PARAM
 
@@ -119,6 +145,15 @@ log_success() { echo -e "${GREEN}[DONE]${NC} $1"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
 require_cmd() { command -v "$1" >/dev/null 2>&1 || log_error "Missing command: $1"; }
+iranux_json_string() {
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  s="${s//$'\t'/\\t}"
+  s="${s//$'\r'/\\r}"
+  s="${s//$'\n'/\\n}"
+  printf '"%s"' "$s"
+}
 backup_file_once() {
   local f="$1"
   [[ -f "$f" && ! -f "${f}.bak" ]] && cp -a "$f" "${f}.bak"
@@ -243,6 +278,8 @@ while [[ $# -gt 0 ]]; do
       ;;
     -h|--help)
       print_usage
+      echo "IRANUX_RESULT {\"outputs\":[]}"
+      echo "__IRANUX_REACHED_END_V1__"
       exit 0
       ;;
     --)
@@ -602,6 +639,7 @@ stop_existing_masterdnsvpn_service() {
 
 if [[ "$ACTION" == "uninstall" ]]; then
   do_uninstall
+  echo "IRANUX_RESULT {\"outputs\":[{\"key\":\"install_dir\",\"label\":\"Cleaned installation folder\",\"value\":$(iranux_json_string "$INSTALL_DIR"),\"type\":\"text\",\"i18n\":{\"fa\":{\"label\":\"پوشه‌ی نصب پاک‌شده\"}}}]}"
   echo "__IRANUX_REACHED_END_V1__"
   exit 0
 fi
@@ -820,11 +858,13 @@ if [[ -f "server_config.toml.backup" ]]; then
 fi
 
 USER_DOMAIN="${USER_DOMAIN:-}"
+RESULT_DOMAIN=""
 if [[ -f "server_config.toml" ]] && grep -q '"v.domain.com"' server_config.toml; then
   echo -e "${YELLOW}${BOLD}Attention:${NC} Set your NS domain."
   if [[ -n "${USER_DOMAIN:-}" ]]; then
     sed -i -E "s|^DOMAIN[[:space:]]*=.*$|DOMAIN = [\"${USER_DOMAIN}\"]|" server_config.toml
     log_success "DOMAIN updated in server_config.toml: ${USER_DOMAIN}"
+    RESULT_DOMAIN="${USER_DOMAIN}"
   else
     log_warn "USER_DOMAIN was not supplied. Leaving server_config.toml DOMAIN unchanged."
   fi
@@ -872,7 +912,7 @@ if [[ "$KEY_GENERATED" != true ]]; then
 fi
 
 echo -e "${GREEN}${BOLD}------------------------------------------------------"
-echo -e "  YOUR ENCRYPTION KEY: ${NC}${CYAN}$(cat encrypt_key.txt 2>/dev/null)${NC}"
+echo -e "  YOUR ENCRYPTION KEY IS STORED IN: ${NC}${CYAN}${INSTALL_DIR}/encrypt_key.txt${NC}"
 echo -e "${GREEN}${BOLD}------------------------------------------------------${NC}"
 
 log_header "Installing System Service"
@@ -928,5 +968,10 @@ echo -e "${YELLOW}Final Note:${NC} If config changes, run: systemctl restart mas
 
 rm -f *.spec >/dev/null 2>&1 || true
 
+if [[ -n "${RESULT_DOMAIN:-}" ]]; then
+  echo "IRANUX_RESULT {\"outputs\":[{\"key\":\"tunnel_domain\",\"label\":\"Tunnel domain\",\"value\":$(iranux_json_string "$RESULT_DOMAIN"),\"type\":\"copy\",\"i18n\":{\"fa\":{\"label\":\"دامنه‌ی تونل\"}}},{\"key\":\"dns_port\",\"label\":\"DNS port (UDP/TCP)\",\"value\":\"53\",\"type\":\"text\",\"i18n\":{\"fa\":{\"label\":\"پورت DNS (UDP/TCP)\"}}},{\"key\":\"encryption_key_file\",\"label\":\"Encryption key file\",\"value\":$(iranux_json_string "${INSTALL_DIR}/encrypt_key.txt"),\"type\":\"text\",\"i18n\":{\"fa\":{\"label\":\"فایل کلید رمزنگاری\"}}},{\"key\":\"config_file\",\"label\":\"Configuration file\",\"value\":$(iranux_json_string "${INSTALL_DIR}/server_config.toml"),\"type\":\"copy\",\"i18n\":{\"fa\":{\"label\":\"فایل پیکربندی\"}}},{\"key\":\"service_name\",\"label\":\"Service name\",\"value\":\"masterdnsvpn\",\"type\":\"copy\",\"i18n\":{\"fa\":{\"label\":\"نام سرویس\"}}}]}"
+else
+  echo "IRANUX_RESULT {\"outputs\":[{\"key\":\"dns_port\",\"label\":\"DNS port (UDP/TCP)\",\"value\":\"53\",\"type\":\"text\",\"i18n\":{\"fa\":{\"label\":\"پورت DNS (UDP/TCP)\"}}},{\"key\":\"encryption_key_file\",\"label\":\"Encryption key file\",\"value\":$(iranux_json_string "${INSTALL_DIR}/encrypt_key.txt"),\"type\":\"text\",\"i18n\":{\"fa\":{\"label\":\"فایل کلید رمزنگاری\"}}},{\"key\":\"config_file\",\"label\":\"Configuration file\",\"value\":$(iranux_json_string "${INSTALL_DIR}/server_config.toml"),\"type\":\"copy\",\"i18n\":{\"fa\":{\"label\":\"فایل پیکربندی\"}}},{\"key\":\"service_name\",\"label\":\"Service name\",\"value\":\"masterdnsvpn\",\"type\":\"copy\",\"i18n\":{\"fa\":{\"label\":\"نام سرویس\"}}}]}"
+fi
 echo "__IRANUX_REACHED_END_V1__"
 exit 0
