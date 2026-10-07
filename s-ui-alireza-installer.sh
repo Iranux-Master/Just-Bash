@@ -4,13 +4,20 @@
 {
   "standard": {
     "name": "iranux-script-metadata",
-    "schema_version": "1.1"
+    "schema_version": "1.2"
   },
   "script": {
     "id": "s-ui-alireza-installer",
     "name": "s-ui Alireza Installer",
     "version": "1.0.0",
-    "description": "Installs or updates the alireza0/s-ui panel, downloads the selected release, installs the systemd service, migrates settings, and optionally configures panel, subscription, and admin settings."
+    "description": "Installs or updates the alireza0/s-ui panel: updates system packages, downloads the selected release, installs the systemd service, migrates settings, and optionally sets the panel, subscription and admin settings.",
+    "estimated_minutes": 5,
+    "i18n": {
+      "fa": {
+        "name": "نصب پنل s-ui (Alireza)",
+        "description": "پنل alireza0/s-ui را نصب یا به‌روزرسانی می‌کند: بسته‌های سیستم را به‌روزرسانی می‌کند، نسخه‌ی انتخاب‌شده را دانلود می‌کند، سرویس systemd را نصب می‌کند، تنظیمات را منتقل می‌کند و در صورت انتخاب شما، تنظیمات پنل، اشتراک و مدیر را اعمال می‌کند."
+      }
+    }
   },
   "risk": {
     "level": "high"
@@ -24,7 +31,7 @@
       "centos",
       "almalinux",
       "rocky",
-      "oracle",
+      "ol",
       "fedora",
       "arch",
       "manjaro",
@@ -32,9 +39,6 @@
       "opensuse-tumbleweed"
     ],
     "required_commands": [
-      "wget",
-      "curl",
-      "tar",
       "systemctl"
     ]
   },
@@ -58,20 +62,27 @@ IRANUX_METADATA
 : <<'IRANUX_PARAM'
 {
   "name": "target_version",
-  "label": "Target Version",
-  "description": "Optional s-ui release tag to install. Leave empty to install the latest release from GitHub.",
+  "label": "Version",
+  "description": "Enter the s-ui release to install, for example v1.2.3. Leave empty to install the latest release.",
   "type": "string",
   "required": false,
   "placeholder": "v1.2.3",
-  "group": "Download Settings"
+  "group": "Download Settings",
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "نسخه",
+      "description": "نسخه‌ی s-ui را که می‌خواهید نصب شود وارد کنید، مثلاً v1.2.3. برای نصب آخرین نسخه، خالی بگذارید."
+    }
+  }
 }
 IRANUX_PARAM
 
 : <<'IRANUX_PARAM'
 {
   "name": "configure_panel",
-  "label": "Configure Panel Settings",
-  "description": "Choose whether to configure panel and subscription settings after installation.",
+  "label": "Configure panel settings",
+  "description": "Choose whether to set the panel and subscription port and path after installation. If you choose No on a new installation, a random admin username and password are created.",
   "type": "enum",
   "required": true,
   "default": "N",
@@ -85,63 +96,96 @@ IRANUX_PARAM
       "value": "N"
     }
   ],
-  "group": "Panel Settings"
+  "group": "Panel Settings",
+  "i18n": {
+    "fa": {
+      "label": "پیکربندی تنظیمات پنل",
+      "description": "انتخاب کنید که پورت و مسیر پنل و اشتراک بعد از نصب تنظیم شود یا نه. اگر در نصب جدید «خیر» را انتخاب کنید، یک نام کاربری و رمز عبور تصادفی برای مدیر ساخته می‌شود."
+    }
+  }
 }
 IRANUX_PARAM
 
 : <<'IRANUX_PARAM'
 {
   "name": "panel_port",
-  "label": "Panel Port",
-  "description": "Optional panel port. Used only when Configure Panel Settings is Yes. Leave empty to keep existing/default value.",
+  "label": "Panel port",
+  "description": "Enter the port the panel listens on. Used only when Configure panel settings is Yes. Leave empty to keep the current port.",
   "type": "port",
   "required": false,
   "example": 2095,
-  "group": "Panel Settings"
+  "group": "Panel Settings",
+  "i18n": {
+    "fa": {
+      "label": "پورت پنل",
+      "description": "پورتی را که پنل روی آن کار می‌کند وارد کنید. فقط وقتی استفاده می‌شود که «پیکربندی تنظیمات پنل» روی «بله» باشد. برای نگه داشتن پورت فعلی، خالی بگذارید."
+    }
+  }
 }
 IRANUX_PARAM
 
 : <<'IRANUX_PARAM'
 {
   "name": "panel_path",
-  "label": "Panel Path",
-  "description": "Optional panel path. Used only when Configure Panel Settings is Yes. Leave empty to keep existing/default value.",
+  "label": "Panel path",
+  "description": "Enter the path of the panel address, for example admin. Used only when Configure panel settings is Yes. Leave empty to keep the current path.",
   "type": "string",
   "required": false,
   "placeholder": "admin",
-  "group": "Panel Settings"
+  "group": "Panel Settings",
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "مسیر پنل",
+      "description": "مسیر آدرس پنل را وارد کنید، مثلاً admin. فقط وقتی استفاده می‌شود که «پیکربندی تنظیمات پنل» روی «بله» باشد. برای نگه داشتن مسیر فعلی، خالی بگذارید."
+    }
+  }
 }
 IRANUX_PARAM
 
 : <<'IRANUX_PARAM'
 {
   "name": "subscription_port",
-  "label": "Subscription Port",
-  "description": "Optional subscription port. Used only when Configure Panel Settings is Yes. Leave empty to keep existing/default value.",
+  "label": "Subscription port",
+  "description": "Enter the port for subscription links. Used only when Configure panel settings is Yes. Leave empty to keep the current port.",
   "type": "port",
   "required": false,
   "example": 2096,
-  "group": "Subscription Settings"
+  "group": "Subscription Settings",
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "پورت اشتراک",
+      "description": "پورت لینک‌های اشتراک را وارد کنید. فقط وقتی استفاده می‌شود که «پیکربندی تنظیمات پنل» روی «بله» باشد. برای نگه داشتن پورت فعلی، خالی بگذارید."
+    }
+  }
 }
 IRANUX_PARAM
 
 : <<'IRANUX_PARAM'
 {
   "name": "subscription_path",
-  "label": "Subscription Path",
-  "description": "Optional subscription path. Used only when Configure Panel Settings is Yes. Leave empty to keep existing/default value.",
+  "label": "Subscription path",
+  "description": "Enter the path of subscription links, for example sub. Used only when Configure panel settings is Yes. Leave empty to keep the current path.",
   "type": "string",
   "required": false,
   "placeholder": "sub",
-  "group": "Subscription Settings"
+  "group": "Subscription Settings",
+  "level": "advanced",
+  "i18n": {
+    "fa": {
+      "label": "مسیر اشتراک",
+      "description": "مسیر لینک‌های اشتراک را وارد کنید، مثلاً sub. فقط وقتی استفاده می‌شود که «پیکربندی تنظیمات پنل» روی «بله» باشد. برای نگه داشتن مسیر فعلی، خالی بگذارید."
+    }
+  }
 }
 IRANUX_PARAM
 
 : <<'IRANUX_PARAM'
 {
   "name": "change_admin_credentials",
-  "label": "Change Admin Credentials",
-  "description": "Choose whether to change admin credentials after panel settings are applied.",
+  "label": "Change admin username and password",
+  "description": "Choose whether to set a new admin username and password. Used only when Configure panel settings is Yes. If you choose No, the current admin login is shown in the log.",
   "type": "enum",
   "required": true,
   "default": "N",
@@ -155,34 +199,51 @@ IRANUX_PARAM
       "value": "N"
     }
   ],
-  "group": "Admin Settings"
+  "group": "Admin Settings",
+  "i18n": {
+    "fa": {
+      "label": "تغییر نام کاربری و رمز عبور مدیر",
+      "description": "انتخاب کنید که نام کاربری و رمز عبور تازه‌ای برای مدیر تنظیم شود یا نه. فقط وقتی استفاده می‌شود که «پیکربندی تنظیمات پنل» روی «بله» باشد. اگر «خیر» را انتخاب کنید، اطلاعات ورود فعلی مدیر در گزارش اجرا نشان داده می‌شود."
+    }
+  }
 }
 IRANUX_PARAM
 
 : <<'IRANUX_PARAM'
 {
   "name": "admin_username",
-  "label": "Admin Username",
-  "description": "Admin username used only when Change Admin Credentials is Yes.",
+  "label": "Admin username",
+  "description": "Enter the username for signing in to the panel. Used only when Change admin username and password is Yes.",
   "type": "string",
   "required": false,
   "placeholder": "admin",
-  "group": "Admin Settings"
+  "group": "Admin Settings",
+  "i18n": {
+    "fa": {
+      "label": "نام کاربری مدیر",
+      "description": "نام کاربری برای ورود به پنل را وارد کنید. فقط وقتی استفاده می‌شود که «تغییر نام کاربری و رمز عبور مدیر» روی «بله» باشد."
+    }
+  }
 }
 IRANUX_PARAM
 
 : <<'IRANUX_PARAM'
 {
   "name": "admin_password",
-  "label": "Admin Password",
-  "description": "Admin password used only when Change Admin Credentials is Yes.",
+  "label": "Admin password",
+  "description": "Enter the password for signing in to the panel. Used only when Change admin username and password is Yes.",
   "type": "password",
   "required": false,
   "sensitive": true,
-  "group": "Admin Settings"
+  "group": "Admin Settings",
+  "i18n": {
+    "fa": {
+      "label": "رمز عبور مدیر",
+      "description": "رمز عبور برای ورود به پنل را وارد کنید. فقط وقتی استفاده می‌شود که «تغییر نام کاربری و رمز عبور مدیر» روی «بله» باشد."
+    }
+  }
 }
 IRANUX_PARAM
-
 
 red='\033[0;31m'
 green='\033[0;32m'
@@ -190,6 +251,42 @@ yellow='\033[0;33m'
 plain='\033[0m'
 
 cur_dir=$(pwd)
+
+# Iranux: JSON string escaping for the IRANUX_RESULT line (specification Appendix C).
+iranux_json_string() {
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  s="${s//$'\t'/\\t}"
+  s="${s//$'\r'/\\r}"
+  s="${s//$'\n'/\\n}"
+  printf '"%s"' "$s"
+}
+
+# Iranux: values reported in the IRANUX_RESULT line (empty values are left out).
+iranux_result_panel_port=""
+iranux_result_panel_path=""
+iranux_result_sub_port=""
+iranux_result_sub_path=""
+iranux_result_username=""
+iranux_result_credentials_file=""
+iranux_outputs=""
+iranux_add_output() {
+    # $1 key, $2 English label, $3 value, $4 type, $5 Persian label
+    [[ -n "$3" ]] || return 0
+    [[ -z "$iranux_outputs" ]] || iranux_outputs+=","
+    iranux_outputs+="{\"key\":\"$1\",\"label\":\"$2\",\"value\":$(iranux_json_string "$3"),\"type\":\"$4\",\"i18n\":{\"fa\":{\"label\":\"$5\"}}}"
+}
+iranux_print_result() {
+    iranux_add_output "panel_port" "Panel port" "$iranux_result_panel_port" "text" "پورت پنل"
+    iranux_add_output "panel_path" "Panel path" "$iranux_result_panel_path" "text" "مسیر پنل"
+    iranux_add_output "subscription_port" "Subscription port" "$iranux_result_sub_port" "text" "پورت اشتراک"
+    iranux_add_output "subscription_path" "Subscription path" "$iranux_result_sub_path" "text" "مسیر اشتراک"
+    iranux_add_output "admin_username" "Admin username" "$iranux_result_username" "copy" "نام کاربری مدیر"
+    iranux_add_output "credentials_file" "Login details file" "$iranux_result_credentials_file" "text" "فایل اطلاعات ورود"
+    iranux_add_output "installed_version" "Installed version" "$last_version" "text" "نسخه‌ی نصب‌شده"
+    echo "IRANUX_RESULT {\"outputs\":[${iranux_outputs}]}"
+}
 
 # check root
 [[ $EUID -ne 0 ]] && echo -e "${red}Fatal error: ${plain} Please run this script with root privilege \n " && exit 1
@@ -256,12 +353,16 @@ config_after_install() {
 
         # Set configs
         echo -e "${yellow}Initializing, please wait...${plain}"
-        params=""
-        [ -z "$config_port" ] || params="$params -port $config_port"
-        [ -z "$config_path" ] || params="$params -path $config_path"
-        [ -z "$config_subPort" ] || params="$params -subPort $config_subPort"
-        [ -z "$config_subPath" ] || params="$params -subPath $config_subPath"
-        /usr/local/s-ui/sui setting ${params}
+        params=()
+        [ -z "$config_port" ] || params+=(-port "$config_port")
+        [ -z "$config_path" ] || params+=(-path "$config_path")
+        [ -z "$config_subPort" ] || params+=(-subPort "$config_subPort")
+        [ -z "$config_subPath" ] || params+=(-subPath "$config_subPath")
+        /usr/local/s-ui/sui setting "${params[@]}"
+        iranux_result_panel_port="$config_port"
+        iranux_result_panel_path="$config_path"
+        iranux_result_sub_port="$config_subPort"
+        iranux_result_sub_path="$config_subPath"
 
         local admin_confirm="${CHANGE_ADMIN_CREDENTIALS:-N}"
         if [[ "${admin_confirm}" == "y" || "${admin_confirm}" == "Y" ]]; then
@@ -271,7 +372,8 @@ config_after_install() {
 
             # Set credentials
             echo -e "${yellow}Initializing, please wait...${plain}"
-            /usr/local/s-ui/sui admin -username ${config_account} -password ${config_password}
+            /usr/local/s-ui/sui admin -username "${config_account}" -password "${config_password}"
+            iranux_result_username="$config_account"
         else
             echo -e "${yellow}Your current admin credentials: ${plain}"
             /usr/local/s-ui/sui admin -show
@@ -283,8 +385,11 @@ config_after_install() {
             local passwordTemp=$(head -c 6 /dev/urandom | base64)
             echo -e "this is a fresh installation,will generate random login info for security concerns:"
             echo -e "###############################################"
-            echo -e "${green}username:${usernameTemp}${plain}"
-            echo -e "${green}password:${passwordTemp}${plain}"
+            # Iranux: the generated login is written to a root-only file instead of the log.
+            ( umask 077; printf 'username: %s\npassword: %s\n' "${usernameTemp}" "${passwordTemp}" > /root/s-ui-credentials.txt )
+            echo -e "${green}username and password saved to /root/s-ui-credentials.txt (readable by root only)${plain}"
+            iranux_result_username="$usernameTemp"
+            iranux_result_credentials_file="/root/s-ui-credentials.txt"
             echo -e "###############################################"
             echo -e "${red}if you forgot your login info,you can type ${green}s-ui${red} for configuration menu${plain}"
             /usr/local/s-ui/sui admin -username ${usernameTemp} -password ${passwordTemp}
@@ -328,7 +433,7 @@ install_s-ui() {
         last_version=$1
         url="https://github.com/alireza0/s-ui/releases/download/${last_version}/s-ui-linux-$(arch).tar.gz"
         echo -e "Beginning the install s-ui v$1"
-        wget -N --no-check-certificate -O /tmp/s-ui-linux-$(arch).tar.gz ${url}
+        wget -N --no-check-certificate -O /tmp/s-ui-linux-$(arch).tar.gz "${url}"
         if [[ $? -ne 0 ]]; then
             echo -e "${red}download s-ui v$1 failed,please check the version exists${plain}"
             exit 1
@@ -364,7 +469,12 @@ install_s-ui() {
 echo -e "${green}Executing...${plain}"
 TARGET_VERSION="${TARGET_VERSION:-${1:-}}"
 install_base
-install_s-ui ${TARGET_VERSION}
+if [[ -n "${TARGET_VERSION}" ]]; then
+    install_s-ui "${TARGET_VERSION}"
+else
+    install_s-ui
+fi
 
+iranux_print_result
 echo "__IRANUX_REACHED_END_V1__"
 exit 0
