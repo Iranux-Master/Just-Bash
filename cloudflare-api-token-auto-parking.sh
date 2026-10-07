@@ -29,10 +29,7 @@
       "ubuntu",
       "debian"
     ],
-    "required_commands": [
-      "curl",
-      "jq"
-    ]
+    "required_commands": []
   },
   "ui": {
     "category": {

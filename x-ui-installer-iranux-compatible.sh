@@ -297,7 +297,7 @@ POSTGRES_FAILURE_ACTION="${POSTGRES_FAILURE_ACTION:-4}"
   "i18n": {
     "fa": {
       "label": "انتخاب پورت پنل",
-      "description": "اگر می‌خواهید پورت پنل را خودتان تعیین کنید، بله را انتخاب کنید. با انتخاب خیر، یک پورت تصادفی ساخته می‌شود. فقط در نصب جدید اعمال می‌شود."
+      "description": "اگر می‌خواهید پورت پنل را خودتان تعیین کنید، «بله» را انتخاب کنید. با انتخاب «خیر»، یک پورت تصادفی ساخته می‌شود. فقط در نصب جدید اعمال می‌شود."
     }
   }
 }
@@ -317,7 +317,7 @@ CUSTOMIZE_PANEL_PORT="${CUSTOMIZE_PANEL_PORT:-N}"
   "i18n": {
     "fa": {
       "label": "پورت پنل",
-      "description": "پورتی که پنل روی آن در دسترس است. فقط وقتی لازم است که «انتخاب پورت پنل» بله باشد."
+      "description": "پورتی که پنل روی آن در دسترس است. فقط وقتی لازم است که «انتخاب پورت پنل» روی «بله» باشد."
     }
   }
 }
@@ -552,7 +552,7 @@ CUSTOM_KEY_PATH="${CUSTOM_KEY_PATH:-}"
   "i18n": {
     "fa": {
       "label": "پنل فقط روی localhost",
-      "description": "فقط برای گزینه‌ی No SSL استفاده می‌شود. با انتخاب بله، پنل فقط از خود سرور در دسترس است، مثلاً از طریق تونل SSH."
+      "description": "فقط برای گزینه‌ی No SSL استفاده می‌شود. با انتخاب «بله»، پنل فقط از خود سرور در دسترس است، مثلاً از طریق تونل SSH."
     }
   }
 }
@@ -583,7 +583,7 @@ BIND_PANEL_LOCALHOST="${BIND_PANEL_LOCALHOST:-N}"
   "i18n": {
     "fa": {
       "label": "تغییر فرمان بارگذاری مجدد گواهی",
-      "description": "فقط برای گواهی دامنه استفاده می‌شود. با انتخاب بله، فرمانی که بعد از هر تمدید گواهی اجرا می‌شود تغییر می‌کند."
+      "description": "فقط برای گواهی دامنه استفاده می‌شود. با انتخاب «بله»، فرمانی که بعد از هر تمدید گواهی اجرا می‌شود تغییر می‌کند."
     }
   }
 }
@@ -618,7 +618,7 @@ MODIFY_ACME_RELOADCMD="${MODIFY_ACME_RELOADCMD:-N}"
   "i18n": {
     "fa": {
       "label": "فرمان بارگذاری مجدد گواهی",
-      "description": "فرمانی را که بعد از هر تمدید گواهی اجرا می‌شود انتخاب کنید. فقط وقتی استفاده می‌شود که «تغییر فرمان بارگذاری مجدد گواهی» بله باشد."
+      "description": "فرمانی را که بعد از هر تمدید گواهی اجرا می‌شود انتخاب کنید. فقط وقتی استفاده می‌شود که «تغییر فرمان بارگذاری مجدد گواهی» روی «بله» باشد."
     }
   }
 }
@@ -670,7 +670,7 @@ CUSTOM_ACME_RELOADCMD="${CUSTOM_ACME_RELOADCMD:-}"
   "i18n": {
     "fa": {
       "label": "استفاده از گواهی برای پنل",
-      "description": "فقط برای گواهی دامنه استفاده می‌شود. با انتخاب بله، گواهی جدید روی پنل تنظیم می‌شود."
+      "description": "فقط برای گواهی دامنه استفاده می‌شود. با انتخاب «بله»، گواهی جدید روی پنل تنظیم می‌شود."
     }
   }
 }
@@ -1928,7 +1928,10 @@ else
 fi
 IRANUX_R_VERSION="${tag_version:-}"
 if [[ -n "${IRANUX_R_HOST:-}" && -n "${IRANUX_R_PORT:-}" ]]; then
-    iranux_result_add "panel_url" "Panel address" "آدرس پنل" "url" "${IRANUX_R_SCHEME:-https}://${IRANUX_R_HOST}:${IRANUX_R_PORT}/${IRANUX_R_PATH:-}"
+    # A panel bound to localhost opens only through an SSH tunnel, so it is not a clickable link.
+    IRANUX_R_URL_TYPE="url"
+    [[ "${IRANUX_R_HOST}" == "127.0.0.1" ]] && IRANUX_R_URL_TYPE="text"
+    iranux_result_add "panel_url" "Panel address" "آدرس پنل" "${IRANUX_R_URL_TYPE}" "${IRANUX_R_SCHEME:-https}://${IRANUX_R_HOST}:${IRANUX_R_PORT}/${IRANUX_R_PATH:-}"
 fi
 iranux_result_add "panel_port" "Panel port" "پورت پنل" "copy" "${IRANUX_R_PORT:-}"
 iranux_result_add "panel_path" "Panel path" "مسیر پنل" "copy" "${IRANUX_R_PATH:-}"

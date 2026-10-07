@@ -81,9 +81,15 @@ is the owner's decision (KI-43 item 12).
    `install_x-ui ${TARGET_VERSION}` and `install_s-ui ${TARGET_VERSION}` became an
    if/else; option strings built by concatenation became arrays (s-ui `params`, 3x-ui
    `domain_args`).
-6. `clear` removed (Cloudflare scripts, tunnel script).
+6. `clear` removed from the main path (Cloudflare scripts, tunnel script). The `clear` inside the
+   `iranux` menu tool that the tunnel script installs on the server is kept.
 7. StormDNS `user_domain` was `required: true` although the script works without it;
    now optional, as in MasterDnsVPN.
+8. `required_commands` lists only what a script needs and does not install itself:
+   `[]` for the Cloudflare scripts and 3x-ui (they install `curl`, `jq`, `tar` and `openssl` when missing),
+   `["apt-get", "systemctl"]` for the tunnel script, `["systemctl"]` for the others.
+9. 3x-ui: when the panel is bound to localhost, the panel address in the result is plain
+   text, not a link (it opens only through an SSH tunnel).
 
 ## Questions for the owner
 
@@ -129,5 +135,10 @@ is the owner's decision (KI-43 item 12).
 13. **3x-ui file name** keeps the id `x-ui-installer-iranux-compatible`, which contains
     the words "iranux-compatible". Changing the id would orphan admin catalog settings;
     rename it together with a data migration if wanted.
-14. **Checker false positive:** IRX1611 matches `fuser -k`; restrict the `-k` pattern to
+14. **Encryption key file** (MasterDnsVPN, StormDNS): `encrypt_key.txt` is written by the
+    vendor binary in the working folder with a mode the script does not set. Add
+    `chmod 600`?
+15. **Option labels** stay English (no option `i18n` in v1.2), while the Persian
+    descriptions name «بله» and «خیر». Add option translations in v1.3?
+16. **Checker false positive:** IRX1611 matches `fuser -k`; restrict the `-k` pattern to
     `curl`/`wget` in `tools/check_fixtures.py` of the specification repository.

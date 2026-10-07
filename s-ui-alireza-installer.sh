@@ -234,7 +234,6 @@ IRANUX_PARAM
   "description": "Enter the password for signing in to the panel. Used only when Change admin username and password is Yes.",
   "type": "password",
   "required": false,
-  "sensitive": true,
   "group": "Admin Settings",
   "i18n": {
     "fa": {

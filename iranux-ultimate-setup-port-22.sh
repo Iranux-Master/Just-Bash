@@ -29,22 +29,7 @@
       "debian",
       "ubuntu"
     ],
-    "required_commands": [
-      "apt-get",
-      "systemctl",
-      "curl",
-      "wget",
-      "jq",
-      "git",
-      "cmake",
-      "make",
-      "gcc",
-      "g++",
-      "openssl",
-      "ufw",
-      "fuser",
-      "lsof"
-    ]
+    "required_commands": ["apt-get", "systemctl"]
   },
   "ui": {
     "category": {
@@ -88,7 +73,6 @@ IRANUX_PARAM
   "description": "Enter the token of the Telegram bot you will use to manage the tunnel. You get it from @BotFather.",
   "type": "secret",
   "required": true,
-  "sensitive": true,
   "placeholder": "123456789:AA...",
   "group": "Telegram Bot",
   "i18n": {
@@ -1403,6 +1387,7 @@ SCHEMA
 fi
 
 while true; do
+    clear
     echo -e "${CYAN}=== IRANUX TERMINAL MANAGER ===${NC}"
     echo -e " 1) Create User"
     echo -e " 2) Delete User"

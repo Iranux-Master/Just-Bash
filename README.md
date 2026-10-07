@@ -6,7 +6,8 @@ webpack web app and the Iranux Bash Runner Windows app) show and run on a user's
 The governing specification is the
 [Iranux Script Specification](https://github.com/Iranux-Master/Iranux-BashScript-Standard)
 (the repository keeps its old name). Every script here declares **schema 1.2** and
-follows the specification's Catalog profile (§16).
+targets the specification's Catalog profile (§16); the findings still open are listed
+in [`CONVERSION-V1.2.md`](CONVERSION-V1.2.md).
 
 ## What every script contains
 
@@ -19,8 +20,8 @@ follows the specification's Catalog profile (§16).
   can pick itself (such as a random panel port) carry `generate`;
 - one `IRANUX_RESULT` line before the final marker with what the user needs at the end
   (panel port and path, username, name servers, where login details are stored), with
-  Persian labels. Secrets are never printed: generated login details go to a file under
-  `/root` that only root can read, and the result names that file;
+  Persian labels. Generated secrets are not printed: generated login details go to a
+  file under `/root` that only root can read, and the result names that file;
 - the final marker `__IRANUX_REACHED_END_V1__` on every successful path.
 
 The Bash file is the only source of truth. No external manifest is needed. File names
