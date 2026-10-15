@@ -10,12 +10,12 @@
     "id": "x-ui-installer-iranux-compatible",
     "name": "3x-ui Installer",
     "version": "1.1.0",
-    "description": "Installs the 3x-ui panel as a system service with a random admin login and panel path, and can set up PostgreSQL and an SSL certificate without prompts. On RHEL, Fedora, CentOS and Arch it first upgrades all system packages. A reinstall deletes the existing x-ui program folder, and a Let's Encrypt domain certificate deletes and recreates the folder /root/cert/<your domain>.",
+    "description": "Installs the 3x-ui panel as a system service with an admin login set from the parameters (the password is created by the platform and shown on the result page), a random panel path, and can set up PostgreSQL and an SSL certificate without prompts. On RHEL, Fedora, CentOS and Arch it first upgrades all system packages. A reinstall deletes the existing x-ui program folder, and a Let's Encrypt domain certificate deletes and recreates the folder /root/cert/<your domain>.",
     "estimated_minutes": 10,
     "i18n": {
       "fa": {
         "name": "نصب پنل 3x-ui",
-        "description": "پنل 3x-ui را به‌صورت سرویس سیستم نصب می‌کند و نام کاربری، رمز عبور و مسیر پنل را تصادفی می‌سازد. در صورت انتخاب، PostgreSQL و گواهی SSL را هم بدون پرسش تنظیم می‌کند. در RHEL، Fedora، CentOS و Arch ابتدا همه‌ی بسته‌های سیستم به‌روزرسانی می‌شود. در نصب دوباره، پوشه‌ی برنامه‌ی قبلی x-ui پاک می‌شود و گواهی دامنه‌ی Let's Encrypt، پوشه‌ی /root/cert/<دامنه‌ی شما> را پاک می‌کند و از نو می‌سازد."
+        "description": "پنل 3x-ui را به‌صورت سرویس سیستم نصب می‌کند و نام کاربری و رمز عبور را از پارامترها تنظیم می‌کند (رمز را پلتفرم می‌سازد و در صفحه‌ی نتیجه نشان می‌دهد) و مسیر پنل را تصادفی می‌سازد. در صورت انتخاب، PostgreSQL و گواهی SSL را هم بدون پرسش تنظیم می‌کند. در RHEL، Fedora، CentOS و Arch ابتدا همه‌ی بسته‌های سیستم به‌روزرسانی می‌شود. در نصب دوباره، پوشه‌ی برنامه‌ی قبلی x-ui پاک می‌شود و گواهی دامنه‌ی Let's Encrypt، پوشه‌ی /root/cert/<دامنه‌ی شما> را پاک می‌کند و از نو می‌سازد."
       }
     }
   },
@@ -1640,7 +1640,10 @@ EOF
                 echo -e "${yellow}Generated random port: ${config_port}${plain}"
             fi
 
-            "${xui_folder}/x-ui" setting -username "${config_username}" -password "${config_password}" -port "${config_port}" -webBasePath "${config_webBasePath}"
+            "${xui_folder}/x-ui" setting -username "${config_username}" -password "${config_password}" -port "${config_port}" -webBasePath "${config_webBasePath}" || {
+                echo -e "${red}Failed to set the admin login; the password was not applied.${plain}"
+                exit 1
+            }
 
             echo ""
             echo -e "${green}═══════════════════════════════════════════${plain}"
@@ -1661,6 +1664,7 @@ EOF
             # written anywhere: the platform shows it on the result page.
             if [[ -n "${config_apiToken}" ]]; then
                 ( umask 077; printf 'API Token: %s\n' "${config_apiToken}" > /root/x-ui-api-token.txt )
+                chmod 600 /root/x-ui-api-token.txt
             fi
             IRANUX_R_PASSWORD_SET=1
             IRANUX_R_USER="${config_username}"
@@ -1726,7 +1730,10 @@ EOF
             fi
 
             echo -e "${yellow}Default credentials detected. Security update required...${plain}"
-            "${xui_folder}/x-ui" setting -username "${config_username}" -password "${config_password}"
+            "${xui_folder}/x-ui" setting -username "${config_username}" -password "${config_password}" || {
+                echo -e "${red}Failed to set the admin login; the password was not applied.${plain}"
+                exit 1
+            }
             echo -e "The admin login was changed."
             echo -e "###############################################"
             echo -e "${green}Username: ${config_username}${plain}"

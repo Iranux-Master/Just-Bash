@@ -385,11 +385,17 @@ config_after_install() {
     if [[ "${set_credentials}" == "1" ]]; then
         local config_account="${ADMIN_USERNAME:-admin}"
         local config_password="${ADMIN_PASSWORD:-}"
-        if [[ -z "${config_password}" ]]; then
+        if [[ -z "${config_password}" && "${fresh_install}" == "1" ]]; then
+            echo -e "${red}No admin password was provided; stopping so the panel is not left with the default login.${plain}"
+            exit 1
+        elif [[ -z "${config_password}" ]]; then
             echo -e "${red}No admin password was provided; the admin login was not changed.${plain}"
         else
             echo -e "${yellow}Setting the admin login, please wait...${plain}"
-            /usr/local/s-ui/sui admin -username "${config_account}" -password "${config_password}"
+            /usr/local/s-ui/sui admin -username "${config_account}" -password "${config_password}" || {
+                echo -e "${red}Failed to set the admin login; the password was not applied.${plain}"
+                exit 1
+            }
             iranux_result_username="$config_account"
             iranux_result_password_set=1
             echo -e "${green}Admin username: ${config_account}. The password is shown on the result page.${plain}"

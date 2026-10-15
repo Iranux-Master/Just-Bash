@@ -15,7 +15,7 @@
     "i18n": {
       "fa": {
         "name": "نصب پنل x-ui (Alireza)",
-        "description": "پنل alireza0/x-ui را نصب یا به‌روزرسانی می‌کند: بسته‌های سیستم را به‌روزرسانی می‌کند، نسخه‌ی انتخاب‌شده را دانلود می‌کند، سرویس systemd را نصب می‌کند، تنظیمات را منتقل می‌کند و می‌تواند نسخه‌ی پشتیبانِ مانده از یک نصب ناموفق را بازیابی کند. در نصب جدید، نام کاربری، رمز عبور، پورت و مسیر پنل به‌صورت تصادفی ساخته می‌شود."
+        "description": "پنل alireza0/x-ui را نصب یا به‌روزرسانی می‌کند: بسته‌های سیستم را به‌روزرسانی می‌کند، نسخه‌ی انتخاب‌شده را دانلود می‌کند، سرویس systemd را نصب می‌کند، تنظیمات را منتقل می‌کند و می‌تواند نسخه‌ی پشتیبانِ مانده از یک نصب ناموفق را بازیابی کند. در نصب جدید، نام کاربری و رمز عبور را از پارامترها تنظیم می‌کند (رمز را پلتفرم می‌سازد و در صفحه‌ی نتیجه نشان می‌دهد) و پورت و مسیر پنل را تصادفی می‌سازد."
       }
     }
   },
@@ -322,7 +322,10 @@ config_after_install() {
                 echo -e "${yellow}Generated random port: ${config_port}${plain}"
             fi
 
-            /usr/local/x-ui/x-ui setting -username "${config_username}" -password "${config_password}" -port "${config_port}" -webBasePath "${config_webBasePath}"
+            /usr/local/x-ui/x-ui setting -username "${config_username}" -password "${config_password}" -port "${config_port}" -webBasePath "${config_webBasePath}" || {
+                echo -e "${red}Failed to set the admin login; the password was not applied.${plain}"
+                exit 1
+            }
             echo -e "This is a fresh installation, the admin login was set. The password is shown on the result page."
             echo -e "###############################################"
             echo -e "${green}Username: ${config_username}${plain}"
@@ -352,7 +355,10 @@ config_after_install() {
             fi
 
             echo -e "${yellow}Default credentials detected. Security update required...${plain}"
-            /usr/local/x-ui/x-ui setting -username "${config_username}" -password "${config_password}"
+            /usr/local/x-ui/x-ui setting -username "${config_username}" -password "${config_password}" || {
+                echo -e "${red}Failed to set the admin login; the password was not applied.${plain}"
+                exit 1
+            }
             echo -e "The admin login was changed. The password is shown on the result page."
             echo -e "###############################################"
             echo -e "${green}Username: ${config_username}${plain}"
