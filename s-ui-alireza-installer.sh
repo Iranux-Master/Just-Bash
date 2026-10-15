@@ -9,7 +9,7 @@
   "script": {
     "id": "s-ui-alireza-installer",
     "name": "s-ui Alireza Installer",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Installs or updates the alireza0/s-ui panel: updates system packages, downloads the selected release, installs the systemd service, migrates settings, and optionally sets the panel, subscription and admin settings.",
     "estimated_minutes": 5,
     "i18n": {
@@ -82,7 +82,7 @@ IRANUX_PARAM
 {
   "name": "configure_panel",
   "label": "Configure panel settings",
-  "description": "Choose whether to set the panel and subscription port and path after installation. If you choose No on a new installation, a random admin username and password are created.",
+  "description": "Choose whether to set the panel and subscription port and path after installation. On a new installation the admin login is always set from the admin username and password below.",
   "type": "enum",
   "required": true,
   "default": "N",
@@ -185,7 +185,7 @@ IRANUX_PARAM
 {
   "name": "change_admin_credentials",
   "label": "Change admin username and password",
-  "description": "Choose whether to set a new admin username and password. Used only when Configure panel settings is Yes. If you choose No, the current admin login is shown in the log.",
+  "description": "Choose whether to set a new admin username and password. Used only when Configure panel settings is Yes. If you choose No, the existing admin login is kept.",
   "type": "enum",
   "required": true,
   "default": "N",
@@ -203,7 +203,7 @@ IRANUX_PARAM
   "i18n": {
     "fa": {
       "label": "تغییر نام کاربری و رمز عبور مدیر",
-      "description": "انتخاب کنید که نام کاربری و رمز عبور تازه‌ای برای مدیر تنظیم شود یا نه. فقط وقتی استفاده می‌شود که «پیکربندی تنظیمات پنل» روی «بله» باشد. اگر «خیر» را انتخاب کنید، اطلاعات ورود فعلی مدیر در گزارش اجرا نشان داده می‌شود."
+      "description": "انتخاب کنید که نام کاربری و رمز عبور تازه‌ای برای مدیر تنظیم شود یا نه. فقط وقتی استفاده می‌شود که «پیکربندی تنظیمات پنل» روی «بله» باشد. اگر «خیر» را انتخاب کنید، اطلاعات ورود فعلی مدیر بدون تغییر می‌ماند."
     }
   }
 }
@@ -213,15 +213,16 @@ IRANUX_PARAM
 {
   "name": "admin_username",
   "label": "Admin username",
-  "description": "Enter the username for signing in to the panel. Used only when Change admin username and password is Yes.",
+  "description": "Enter the username for signing in to the panel. Used on a new installation, and on an update only when Change admin username and password is Yes. Leave empty to use admin.",
   "type": "string",
   "required": false,
+  "default": "admin",
   "placeholder": "admin",
   "group": "Admin Settings",
   "i18n": {
     "fa": {
       "label": "نام کاربری مدیر",
-      "description": "نام کاربری برای ورود به پنل را وارد کنید. فقط وقتی استفاده می‌شود که «تغییر نام کاربری و رمز عبور مدیر» روی «بله» باشد."
+      "description": "نام کاربری برای ورود به پنل را وارد کنید. در نصب تازه همیشه استفاده می‌شود و در به‌روزرسانی فقط وقتی «تغییر نام کاربری و رمز عبور مدیر» روی «بله» باشد. برای استفاده از admin خالی بگذارید."
     }
   }
 }
@@ -231,14 +232,15 @@ IRANUX_PARAM
 {
   "name": "admin_password",
   "label": "Admin password",
-  "description": "Enter the password for signing in to the panel. Used only when Change admin username and password is Yes.",
+  "description": "The platform creates a strong password unless you type one. It is shown on the result page. Used on a new installation, and on an update only when Change admin username and password is Yes.",
   "type": "password",
-  "required": false,
+  "required": true,
+  "generate": "password",
   "group": "Admin Settings",
   "i18n": {
     "fa": {
       "label": "رمز عبور مدیر",
-      "description": "رمز عبور برای ورود به پنل را وارد کنید. فقط وقتی استفاده می‌شود که «تغییر نام کاربری و رمز عبور مدیر» روی «بله» باشد."
+      "description": "اگر رمزی وارد نکنید، پلتفرم یک رمز قوی می‌سازد و در صفحه‌ی نتیجه نشان می‌دهد. در نصب تازه استفاده می‌شود و در به‌روزرسانی فقط وقتی «تغییر نام کاربری و رمز عبور مدیر» روی «بله» باشد."
     }
   }
 }
@@ -268,7 +270,7 @@ iranux_result_panel_path=""
 iranux_result_sub_port=""
 iranux_result_sub_path=""
 iranux_result_username=""
-iranux_result_credentials_file=""
+iranux_result_password_set=0
 iranux_outputs=""
 iranux_add_output() {
     # $1 key, $2 English label, $3 value, $4 type, $5 Persian label
@@ -282,9 +284,10 @@ iranux_print_result() {
     iranux_add_output "subscription_port" "Subscription port" "$iranux_result_sub_port" "text" "پورت اشتراک"
     iranux_add_output "subscription_path" "Subscription path" "$iranux_result_sub_path" "text" "مسیر اشتراک"
     iranux_add_output "admin_username" "Admin username" "$iranux_result_username" "copy" "نام کاربری مدیر"
-    iranux_add_output "credentials_file" "Login details file" "$iranux_result_credentials_file" "text" "فایل اطلاعات ورود"
     iranux_add_output "installed_version" "Installed version" "$last_version" "text" "نسخه‌ی نصب‌شده"
-    echo "IRANUX_RESULT {\"outputs\":[${iranux_outputs}]}"
+    local iranux_show=""
+    [[ "$iranux_result_password_set" == "1" ]] && iranux_show=",\"show_generated\":[\"admin_password\"]"
+    echo "IRANUX_RESULT {\"outputs\":[${iranux_outputs}]${iranux_show}}"
 }
 
 # check root
@@ -339,6 +342,9 @@ install_base() {
 }
 
 config_after_install() {
+    # Iranux: decide before the migration, which may create the database.
+    local fresh_install=0
+    [[ -f "/usr/local/s-ui/db/s-ui.db" ]] || fresh_install=1
     echo -e "${yellow}Migration... ${plain}"
     /usr/local/s-ui/sui migrate
 
@@ -362,39 +368,40 @@ config_after_install() {
         iranux_result_panel_path="$config_path"
         iranux_result_sub_port="$config_subPort"
         iranux_result_sub_path="$config_subPath"
-
-        local admin_confirm="${CHANGE_ADMIN_CREDENTIALS:-N}"
-        if [[ "${admin_confirm}" == "y" || "${admin_confirm}" == "Y" ]]; then
-            # First admin credentials
-            local config_account="${ADMIN_USERNAME:-}"
-            local config_password="${ADMIN_PASSWORD:-}"
-
-            # Set credentials
-            echo -e "${yellow}Initializing, please wait...${plain}"
-            /usr/local/s-ui/sui admin -username "${config_account}" -password "${config_password}"
-            iranux_result_username="$config_account"
-        else
-            echo -e "${yellow}Your current admin credentials: ${plain}"
-            /usr/local/s-ui/sui admin -show
-        fi
     else
         echo -e "${red}cancel...${plain}"
-        if [[ ! -f "/usr/local/s-ui/db/s-ui.db" ]]; then
-            local usernameTemp=$(head -c 6 /dev/urandom | base64)
-            local passwordTemp=$(head -c 6 /dev/urandom | base64)
-            echo -e "this is a fresh installation,will generate random login info for security concerns:"
-            echo -e "###############################################"
-            # Iranux: the generated login is written to a root-only file instead of the log.
-            ( umask 077; printf 'username: %s\npassword: %s\n' "${usernameTemp}" "${passwordTemp}" > /root/s-ui-credentials.txt )
-            echo -e "${green}username and password saved to /root/s-ui-credentials.txt (readable by root only)${plain}"
-            iranux_result_username="$usernameTemp"
-            iranux_result_credentials_file="/root/s-ui-credentials.txt"
-            echo -e "###############################################"
-            echo -e "${red}if you forgot your login info,you can type ${green}s-ui${red} for configuration menu${plain}"
-            /usr/local/s-ui/sui admin -username ${usernameTemp} -password ${passwordTemp}
+    fi
+
+    # Iranux: the admin login comes from the parameters (the password is created by the
+    # platform unless the client typed one). It is set on a new installation, or on an
+    # update when the client asked to change it. The password is never printed.
+    local set_credentials=0
+    local admin_confirm="${CHANGE_ADMIN_CREDENTIALS:-N}"
+    if [[ "${fresh_install}" == "1" ]]; then
+        set_credentials=1
+    elif [[ "${config_confirm}" == "y" || "${config_confirm}" == "Y" ]] && [[ "${admin_confirm}" == "y" || "${admin_confirm}" == "Y" ]]; then
+        set_credentials=1
+    fi
+    if [[ "${set_credentials}" == "1" ]]; then
+        local config_account="${ADMIN_USERNAME:-admin}"
+        local config_password="${ADMIN_PASSWORD:-}"
+        if [[ -z "${config_password}" && "${fresh_install}" == "1" ]]; then
+            echo -e "${red}No admin password was provided; stopping so the panel is not left with the default login.${plain}"
+            exit 1
+        elif [[ -z "${config_password}" ]]; then
+            echo -e "${red}No admin password was provided; the admin login was not changed.${plain}"
         else
-            echo -e "${red} this is your upgrade,will keep old settings,if you forgot your login info,you can type ${green}s-ui${red} for configuration menu${plain}"
+            echo -e "${yellow}Setting the admin login, please wait...${plain}"
+            /usr/local/s-ui/sui admin -username "${config_account}" -password "${config_password}" || {
+                echo -e "${red}Failed to set the admin login; the password was not applied.${plain}"
+                exit 1
+            }
+            iranux_result_username="$config_account"
+            iranux_result_password_set=1
+            echo -e "${green}Admin username: ${config_account}. The password is shown on the result page.${plain}"
         fi
+    else
+        echo -e "${red}This is an update; the existing admin login is kept. If you forgot it, type ${green}s-ui${red} for the configuration menu.${plain}"
     fi
 }
 

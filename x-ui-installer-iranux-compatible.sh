@@ -9,13 +9,13 @@
   "script": {
     "id": "x-ui-installer-iranux-compatible",
     "name": "3x-ui Installer",
-    "version": "1.0.0",
-    "description": "Installs the 3x-ui panel as a system service with a random admin login and panel path, and can set up PostgreSQL and an SSL certificate without prompts. On RHEL, Fedora, CentOS and Arch it first upgrades all system packages. A reinstall deletes the existing x-ui program folder, and a Let's Encrypt domain certificate deletes and recreates the folder /root/cert/<your domain>.",
+    "version": "1.1.0",
+    "description": "Installs the 3x-ui panel as a system service with an admin login set from the parameters (the password is created by the platform and shown on the result page), a random panel path, and can set up PostgreSQL and an SSL certificate without prompts. On RHEL, Fedora, CentOS and Arch it first upgrades all system packages. A reinstall deletes the existing x-ui program folder, and a Let's Encrypt domain certificate deletes and recreates the folder /root/cert/<your domain>.",
     "estimated_minutes": 10,
     "i18n": {
       "fa": {
         "name": "نصب پنل 3x-ui",
-        "description": "پنل 3x-ui را به‌صورت سرویس سیستم نصب می‌کند و نام کاربری، رمز عبور و مسیر پنل را تصادفی می‌سازد. در صورت انتخاب، PostgreSQL و گواهی SSL را هم بدون پرسش تنظیم می‌کند. در RHEL، Fedora، CentOS و Arch ابتدا همه‌ی بسته‌های سیستم به‌روزرسانی می‌شود. در نصب دوباره، پوشه‌ی برنامه‌ی قبلی x-ui پاک می‌شود و گواهی دامنه‌ی Let's Encrypt، پوشه‌ی /root/cert/<دامنه‌ی شما> را پاک می‌کند و از نو می‌سازد."
+        "description": "پنل 3x-ui را به‌صورت سرویس سیستم نصب می‌کند و نام کاربری و رمز عبور را از پارامترها تنظیم می‌کند (رمز را پلتفرم می‌سازد و در صفحه‌ی نتیجه نشان می‌دهد) و مسیر پنل را تصادفی می‌سازد. در صورت انتخاب، PostgreSQL و گواهی SSL را هم بدون پرسش تنظیم می‌کند. در RHEL، Fedora، CentOS و Arch ابتدا همه‌ی بسته‌های سیستم به‌روزرسانی می‌شود. در نصب دوباره، پوشه‌ی برنامه‌ی قبلی x-ui پاک می‌شود و گواهی دامنه‌ی Let's Encrypt، پوشه‌ی /root/cert/<دامنه‌ی شما> را پاک می‌کند و از نو می‌سازد."
       }
     }
   },
@@ -324,6 +324,46 @@ CUSTOMIZE_PANEL_PORT="${CUSTOMIZE_PANEL_PORT:-N}"
 IRANUX_PARAM
 
 PANEL_PORT="${PANEL_PORT:-}"
+
+: <<'IRANUX_PARAM'
+{
+  "name": "admin_username",
+  "label": "Admin username",
+  "description": "Enter the username for signing in to the panel. Used when the panel still has the default login (a new installation). Leave empty to use admin.",
+  "type": "string",
+  "required": false,
+  "default": "admin",
+  "placeholder": "admin",
+  "group": "Panel Settings",
+  "i18n": {
+    "fa": {
+      "label": "نام کاربری مدیر",
+      "description": "نام کاربری برای ورود به پنل را وارد کنید. وقتی پنل هنوز ورود پیش‌فرض دارد (نصب تازه) استفاده می‌شود. برای استفاده از admin خالی بگذارید."
+    }
+  }
+}
+IRANUX_PARAM
+
+: <<'IRANUX_PARAM'
+{
+  "name": "admin_password",
+  "label": "Admin password",
+  "description": "The platform creates a strong password unless you type one. It is shown on the result page. Used when the panel still has the default login (a new installation).",
+  "type": "password",
+  "required": true,
+  "generate": "password",
+  "group": "Panel Settings",
+  "i18n": {
+    "fa": {
+      "label": "رمز عبور مدیر",
+      "description": "اگر رمزی وارد نکنید، پلتفرم یک رمز قوی می‌سازد و در صفحه‌ی نتیجه نشان می‌دهد. وقتی پنل هنوز ورود پیش‌فرض دارد (نصب تازه) استفاده می‌شود."
+    }
+  }
+}
+IRANUX_PARAM
+
+ADMIN_USERNAME="${ADMIN_USERNAME:-admin}"
+ADMIN_PASSWORD="${ADMIN_PASSWORD:-}"
 
 : <<'IRANUX_PARAM'
 {
@@ -1504,8 +1544,12 @@ config_after_install() {
     if [[ ${#existing_webBasePath} -lt 4 ]]; then
         if [[ "$existing_hasDefaultCredential" == "true" ]]; then
             local config_webBasePath=$(gen_random_string 18)
-            local config_username=$(gen_random_string 10)
-            local config_password=$(gen_random_string 10)
+            local config_username="${ADMIN_USERNAME:-admin}"
+            local config_password="${ADMIN_PASSWORD:-}"
+            if [[ -z "${config_password}" ]]; then
+                echo -e "${red}No admin password was provided; stopping so the panel is not left with the default login.${plain}"
+                exit 1
+            fi
 
             local db_label="SQLite (/etc/x-ui/x-ui.db)"
             echo ""
@@ -1596,7 +1640,10 @@ EOF
                 echo -e "${yellow}Generated random port: ${config_port}${plain}"
             fi
 
-            "${xui_folder}/x-ui" setting -username "${config_username}" -password "${config_password}" -port "${config_port}" -webBasePath "${config_webBasePath}"
+            "${xui_folder}/x-ui" setting -username "${config_username}" -password "${config_password}" -port "${config_port}" -webBasePath "${config_webBasePath}" || {
+                echo -e "${red}Failed to set the admin login; the password was not applied.${plain}"
+                exit 1
+            }
 
             echo ""
             echo -e "${green}═══════════════════════════════════════════${plain}"
@@ -1612,14 +1659,14 @@ EOF
             # Retrieve the API token for display
             local config_apiToken=$("${xui_folder}/x-ui" setting -getApiToken true | grep -Eo 'apiToken: .+' | awk '{print $2}')
 
-            # Iranux: generated secrets go to a root-only file instead of the log.
-            (
-                umask 077
-                printf 'Username:    %s\nPassword:    %s\nPort:        %s\nWebBasePath: %s\nDatabase:    %s\nAccess URL:  %s\nAPI Token:   %s\n' \
-                    "${config_username}" "${config_password}" "${config_port}" "${config_webBasePath}" "${db_label}" \
-                    "${SSL_SCHEME}://${SSL_HOST}:${config_port}/${config_webBasePath}" "${config_apiToken}" > /root/x-ui-credentials.txt
-            )
-            IRANUX_R_CREDS="/root/x-ui-credentials.txt"
+            # Iranux: the panel creates the API token itself, so it cannot come from the platform.
+            # It goes to a root-only file and never to the log. The admin password is not
+            # written anywhere: the platform shows it on the result page.
+            if [[ -n "${config_apiToken}" ]]; then
+                ( umask 077; printf 'API Token: %s\n' "${config_apiToken}" > /root/x-ui-api-token.txt )
+                chmod 600 /root/x-ui-api-token.txt
+            fi
+            IRANUX_R_PASSWORD_SET=1
             IRANUX_R_USER="${config_username}"
             IRANUX_R_PORT="${config_port}"
             IRANUX_R_PATH="${config_webBasePath}"
@@ -1633,12 +1680,12 @@ EOF
             echo -e "${green}     Panel Installation Complete!         ${plain}"
             echo -e "${green}═══════════════════════════════════════════${plain}"
             echo -e "${green}Username:    ${config_username}${plain}"
-            echo -e "${green}Password:    saved in /root/x-ui-credentials.txt${plain}"
+            echo -e "${green}Password:    shown on the result page${plain}"
             echo -e "${green}Port:        ${config_port}${plain}"
             echo -e "${green}WebBasePath: ${config_webBasePath}${plain}"
             echo -e "${green}Database:    ${db_label}${plain}"
             echo -e "${green}Access URL:  ${SSL_SCHEME}://${SSL_HOST}:${config_port}/${config_webBasePath}${plain}"
-            echo -e "${green}API Token:   saved in /root/x-ui-credentials.txt${plain}"
+            echo -e "${green}API Token:   saved in /root/x-ui-api-token.txt (readable by root only)${plain}"
             echo -e "${green}═══════════════════════════════════════════${plain}"
             echo -e "${yellow}⚠ IMPORTANT: Save these credentials securely!${plain}"
             if [[ "$SSL_SCHEME" == "https" ]]; then
@@ -1675,22 +1722,24 @@ EOF
         fi
     else
         if [[ "$existing_hasDefaultCredential" == "true" ]]; then
-            local config_username=$(gen_random_string 10)
-            local config_password=$(gen_random_string 10)
+            local config_username="${ADMIN_USERNAME:-admin}"
+            local config_password="${ADMIN_PASSWORD:-}"
+            if [[ -z "${config_password}" ]]; then
+                echo -e "${red}No admin password was provided; stopping so the panel is not left with the default login.${plain}"
+                exit 1
+            fi
 
             echo -e "${yellow}Default credentials detected. Security update required...${plain}"
-            "${xui_folder}/x-ui" setting -username "${config_username}" -password "${config_password}"
-            echo -e "Generated new random login credentials:"
+            "${xui_folder}/x-ui" setting -username "${config_username}" -password "${config_password}" || {
+                echo -e "${red}Failed to set the admin login; the password was not applied.${plain}"
+                exit 1
+            }
+            echo -e "The admin login was changed."
             echo -e "###############################################"
             echo -e "${green}Username: ${config_username}${plain}"
-            # Iranux: the generated password goes to a root-only file instead of the log.
-            (
-                umask 077
-                printf 'Username: %s\nPassword: %s\n' "${config_username}" "${config_password}" > /root/x-ui-credentials.txt
-            )
-            echo -e "${green}Password: saved in /root/x-ui-credentials.txt${plain}"
+            echo -e "${green}Password: shown on the result page${plain}"
             echo -e "###############################################"
-            IRANUX_R_CREDS="/root/x-ui-credentials.txt"
+            IRANUX_R_PASSWORD_SET=1
             IRANUX_R_USER="${config_username}"
         else
             echo -e "${green}Username, Password, and WebBasePath are properly set.${plain}"
@@ -1936,9 +1985,10 @@ fi
 iranux_result_add "panel_port" "Panel port" "پورت پنل" "copy" "${IRANUX_R_PORT:-}"
 iranux_result_add "panel_path" "Panel path" "مسیر پنل" "copy" "${IRANUX_R_PATH:-}"
 iranux_result_add "admin_username" "Admin username" "نام کاربری مدیر" "copy" "${IRANUX_R_USER:-}"
-iranux_result_add "credentials_file" "Login details file" "فایل اطلاعات ورود" "text" "${IRANUX_R_CREDS:-}"
 iranux_result_add "database" "Database" "پایگاه داده" "text" "${IRANUX_R_DB:-}"
 iranux_result_add "version" "Version" "نسخه" "text" "${IRANUX_R_VERSION}"
-echo "IRANUX_RESULT {\"outputs\":[${IRANUX_RESULT_ITEMS}]}"
+IRANUX_SHOW_GENERATED=""
+[[ "${IRANUX_R_PASSWORD_SET:-0}" == "1" ]] && IRANUX_SHOW_GENERATED=",\"show_generated\":[\"admin_password\"]"
+echo "IRANUX_RESULT {\"outputs\":[${IRANUX_RESULT_ITEMS}]${IRANUX_SHOW_GENERATED}}"
 echo "__IRANUX_REACHED_END_V1__"
 exit 0

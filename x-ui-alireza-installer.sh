@@ -9,13 +9,13 @@
   "script": {
     "id": "x-ui-alireza-installer",
     "name": "x-ui Alireza Installer",
-    "version": "1.0.0",
-    "description": "Installs or updates the alireza0/x-ui panel: updates system packages, downloads the selected release, installs the systemd service, migrates settings, and can restore a backup left by a failed installation. On a new installation it creates a random admin login, port and panel path.",
+    "version": "1.1.0",
+    "description": "Installs or updates the alireza0/x-ui panel: updates system packages, downloads the selected release, installs the systemd service, migrates settings, and can restore a backup left by a failed installation. On a new installation it sets the admin login (the password is created by the platform and shown on the result page) and a random port and panel path.",
     "estimated_minutes": 5,
     "i18n": {
       "fa": {
         "name": "نصب پنل x-ui (Alireza)",
-        "description": "پنل alireza0/x-ui را نصب یا به‌روزرسانی می‌کند: بسته‌های سیستم را به‌روزرسانی می‌کند، نسخه‌ی انتخاب‌شده را دانلود می‌کند، سرویس systemd را نصب می‌کند، تنظیمات را منتقل می‌کند و می‌تواند نسخه‌ی پشتیبانِ مانده از یک نصب ناموفق را بازیابی کند. در نصب جدید، نام کاربری، رمز عبور، پورت و مسیر پنل به‌صورت تصادفی ساخته می‌شود."
+        "description": "پنل alireza0/x-ui را نصب یا به‌روزرسانی می‌کند: بسته‌های سیستم را به‌روزرسانی می‌کند، نسخه‌ی انتخاب‌شده را دانلود می‌کند، سرویس systemd را نصب می‌کند، تنظیمات را منتقل می‌کند و می‌تواند نسخه‌ی پشتیبانِ مانده از یک نصب ناموفق را بازیابی کند. در نصب جدید، نام کاربری و رمز عبور را از پارامترها تنظیم می‌کند (رمز را پلتفرم می‌سازد و در صفحه‌ی نتیجه نشان می‌دهد) و پورت و مسیر پنل را تصادفی می‌سازد."
       }
     }
   },
@@ -155,6 +155,43 @@ IRANUX_PARAM
 }
 IRANUX_PARAM
 
+: <<'IRANUX_PARAM'
+{
+  "name": "admin_username",
+  "label": "Admin username",
+  "description": "Enter the username for signing in to the panel. Used when the panel still has the default login (a new installation). Leave empty to use admin.",
+  "type": "string",
+  "required": false,
+  "default": "admin",
+  "placeholder": "admin",
+  "group": "Admin Settings",
+  "i18n": {
+    "fa": {
+      "label": "نام کاربری مدیر",
+      "description": "نام کاربری برای ورود به پنل را وارد کنید. وقتی پنل هنوز ورود پیش‌فرض دارد (نصب تازه) استفاده می‌شود. برای استفاده از admin خالی بگذارید."
+    }
+  }
+}
+IRANUX_PARAM
+
+: <<'IRANUX_PARAM'
+{
+  "name": "admin_password",
+  "label": "Admin password",
+  "description": "The platform creates a strong password unless you type one. It is shown on the result page. Used when the panel still has the default login (a new installation).",
+  "type": "password",
+  "required": true,
+  "generate": "password",
+  "group": "Admin Settings",
+  "i18n": {
+    "fa": {
+      "label": "رمز عبور مدیر",
+      "description": "اگر رمزی وارد نکنید، پلتفرم یک رمز قوی می‌سازد و در صفحه‌ی نتیجه نشان می‌دهد. وقتی پنل هنوز ورود پیش‌فرض دارد (نصب تازه) استفاده می‌شود."
+    }
+  }
+}
+IRANUX_PARAM
+
 red='\033[0;31m'
 green='\033[0;32m'
 yellow='\033[0;33m'
@@ -177,7 +214,7 @@ iranux_json_string() {
 iranux_result_panel_port=""
 iranux_result_panel_path=""
 iranux_result_username=""
-iranux_result_credentials_file=""
+iranux_result_password_set=0
 iranux_outputs=""
 iranux_add_output() {
     # $1 key, $2 English label, $3 value, $4 type, $5 Persian label
@@ -189,9 +226,10 @@ iranux_print_result() {
     iranux_add_output "panel_port" "Panel port" "$iranux_result_panel_port" "text" "پورت پنل"
     iranux_add_output "panel_path" "Panel path" "$iranux_result_panel_path" "text" "مسیر پنل"
     iranux_add_output "admin_username" "Admin username" "$iranux_result_username" "copy" "نام کاربری مدیر"
-    iranux_add_output "credentials_file" "Login details file" "$iranux_result_credentials_file" "text" "فایل اطلاعات ورود"
     iranux_add_output "installed_version" "Installed version" "$last_version" "text" "نسخه‌ی نصب‌شده"
-    echo "IRANUX_RESULT {\"outputs\":[${iranux_outputs}]}"
+    local iranux_show=""
+    [[ "$iranux_result_password_set" == "1" ]] && iranux_show=",\"show_generated\":[\"admin_password\"]"
+    echo "IRANUX_RESULT {\"outputs\":[${iranux_outputs}]${iranux_show}}"
 }
 
 # check root
@@ -262,8 +300,12 @@ config_after_install() {
     if [[ ${#existing_webBasePath} -lt 4 ]]; then
         if [[ "$existing_username" == "admin" && "$existing_password" == "admin" ]]; then
             local config_webBasePath=$(gen_random_string 15)
-            local config_username=$(gen_random_string 10)
-            local config_password=$(gen_random_string 10)
+            local config_username="${ADMIN_USERNAME:-admin}"
+            local config_password="${ADMIN_PASSWORD:-}"
+            if [[ -z "${config_password}" ]]; then
+                echo -e "${red}No admin password was provided; stopping so the panel is not left with the default login.${plain}"
+                exit 1
+            fi
 
             local config_confirm="${CUSTOMIZE_PANEL_PORT:-N}"
             local config_port=""
@@ -280,18 +322,19 @@ config_after_install() {
                 echo -e "${yellow}Generated random port: ${config_port}${plain}"
             fi
 
-            /usr/local/x-ui/x-ui setting -username "${config_username}" -password "${config_password}" -port "${config_port}" -webBasePath "${config_webBasePath}"
-            echo -e "This is a fresh installation, generating random login info for security concerns:"
+            /usr/local/x-ui/x-ui setting -username "${config_username}" -password "${config_password}" -port "${config_port}" -webBasePath "${config_webBasePath}" || {
+                echo -e "${red}Failed to set the admin login; the password was not applied.${plain}"
+                exit 1
+            }
+            echo -e "This is a fresh installation, the admin login was set. The password is shown on the result page."
             echo -e "###############################################"
-            # Iranux: the generated login is written to a root-only file instead of the log.
-            ( umask 077; printf 'username: %s\npassword: %s\n' "${config_username}" "${config_password}" > /root/x-ui-credentials.txt )
-            echo -e "${green}Username and password saved to /root/x-ui-credentials.txt (readable by root only)${plain}"
+            echo -e "${green}Username: ${config_username}${plain}"
             echo -e "${green}Port: ${config_port}${plain}"
             echo -e "${green}WebBasePath: ${config_webBasePath}${plain}"
             iranux_result_username="$config_username"
             iranux_result_panel_port="$config_port"
             iranux_result_panel_path="$config_webBasePath"
-            iranux_result_credentials_file="/root/x-ui-credentials.txt"
+            iranux_result_password_set=1
             echo -e "###############################################"
             echo -e "${yellow}If you forgot your login info, you can type 'x-ui settings' to check${plain}"
         else
@@ -304,19 +347,24 @@ config_after_install() {
         fi
     else
         if [[ "$existing_username" == "admin" && "$existing_password" == "admin" ]]; then
-            local config_username=$(gen_random_string 10)
-            local config_password=$(gen_random_string 10)
+            local config_username="${ADMIN_USERNAME:-admin}"
+            local config_password="${ADMIN_PASSWORD:-}"
+            if [[ -z "${config_password}" ]]; then
+                echo -e "${red}No admin password was provided; stopping so the panel is not left with the default login.${plain}"
+                exit 1
+            fi
 
             echo -e "${yellow}Default credentials detected. Security update required...${plain}"
-            /usr/local/x-ui/x-ui setting -username "${config_username}" -password "${config_password}"
-            echo -e "Generated new random login credentials:"
+            /usr/local/x-ui/x-ui setting -username "${config_username}" -password "${config_password}" || {
+                echo -e "${red}Failed to set the admin login; the password was not applied.${plain}"
+                exit 1
+            }
+            echo -e "The admin login was changed. The password is shown on the result page."
             echo -e "###############################################"
-            # Iranux: the generated login is written to a root-only file instead of the log.
-            ( umask 077; printf 'username: %s\npassword: %s\n' "${config_username}" "${config_password}" > /root/x-ui-credentials.txt )
-            echo -e "${green}Username and password saved to /root/x-ui-credentials.txt (readable by root only)${plain}"
+            echo -e "${green}Username: ${config_username}${plain}"
             iranux_result_username="$config_username"
             iranux_result_panel_path="$existing_webBasePath"
-            iranux_result_credentials_file="/root/x-ui-credentials.txt"
+            iranux_result_password_set=1
             echo -e "###############################################"
             echo -e "${yellow}If you forgot your login info, you can type 'x-ui settings' to check${plain}"
         else

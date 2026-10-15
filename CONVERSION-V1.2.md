@@ -65,9 +65,14 @@ is the owner's decision (KI-43 item 12).
    (`CF_ACCOUNT_ID="${CF_ACCOUNT_ID:-}" CF_API_TOKEN="${CF_API_TOKEN:-}"`), which is the
    converter's "assign it from the upper-case variable" rule. Tested with a mocked
    `curl`: the run reaches the end and the token is not in the log.
-2. **Generated secrets no longer printed:** s-ui and x-ui (Alireza) and 3x-ui write a
-   generated admin login (and the 3x-ui API token) to `/root/s-ui-credentials.txt`,
-   `/root/x-ui-credentials.txt` with `umask 077` and print the file name. MasterDnsVPN and
+2. **Generated secrets no longer printed:** s-ui, x-ui (Alireza) and 3x-ui no longer invent
+   a random admin login or write a credentials file. `admin_password` is a parameter with
+   `"generate": "password"`: the platform creates it, passes it as `ADMIN_PASSWORD`, and the
+   result page shows it once because the `IRANUX_RESULT` line lists
+   `"show_generated":["admin_password"]` (only when the script set the password in that run;
+   an update that keeps the old login omits it). The username is a `copy` output. 3x-ui still
+   writes the API token that the panel itself creates to `/root/x-ui-api-token.txt` (`umask 077`)
+   and prints only the file name. MasterDnsVPN and
    StormDNS print the path of `encrypt_key.txt` instead of the key.
 3. **Tunnel script:** `chmod 600` on `config.env` before the bot token is appended
    (specification §10.1.4). The bot service and the `iranux` tool run as root.
