@@ -5,7 +5,8 @@ webpack web app and the Iranux Bash Runner Windows app) show and run on a user's
 
 The governing specification is the
 [Iranux Script Specification](https://github.com/Iranux-Master/Iranux-BashScript-Standard)
-(the repository keeps its old name). Every script here declares **schema 1.2** and
+(the repository keeps its old name). Every script here declares **schema 1.2**, or
+**1.3** when it has a choice parameter (so its options carry Persian labels), and
 targets the specification's Catalog profile (§16); the findings still open are listed
 in [`CONVERSION-V1.2.md`](CONVERSION-V1.2.md).
 
@@ -14,8 +15,11 @@ in [`CONVERSION-V1.2.md`](CONVERSION-V1.2.md).
 - one strict-JSON `IRANUX_METADATA` block: id, name, version, description,
   `estimated_minutes`, risk level, requirements, supported operating systems, category,
   action and a Material Design Icons name;
-- Persian (`fa`) name and description for the script, and a Persian label and
-  description for every parameter, so the setup form reads in Persian or English;
+- Persian (`fa`) name and description for the script, a Persian label and
+  description for every parameter, and a Persian label for every option of a choice
+  (`options[].i18n.fa.label`, specification v1.3 §7.7), so the setup form reads in
+  Persian or English. A yes/no choice is phrased as a question ("Set your own panel
+  port?");
 - one `IRANUX_PARAM` block per input, marked `basic` or `advanced`; values the script
   can pick itself (such as a random panel port) carry `generate`;
 - one `IRANUX_RESULT` line before the final marker with what the user needs at the end

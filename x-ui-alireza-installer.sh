@@ -4,7 +4,7 @@
 {
   "standard": {
     "name": "iranux-script-metadata",
-    "schema_version": "1.2"
+    "schema_version": "1.3"
   },
   "script": {
     "id": "x-ui-alireza-installer",
@@ -91,11 +91,21 @@ IRANUX_PARAM
   "options": [
     {
       "label": "Yes",
-      "value": "Y"
+      "value": "Y",
+      "i18n": {
+        "fa": {
+          "label": "بله"
+        }
+      }
     },
     {
       "label": "No",
-      "value": "N"
+      "value": "N",
+      "i18n": {
+        "fa": {
+          "label": "خیر"
+        }
+      }
     }
   ],
   "group": "Recovery Settings",
@@ -111,26 +121,36 @@ IRANUX_PARAM
 : <<'IRANUX_PARAM'
 {
   "name": "customize_panel_port",
-  "label": "Choose the panel port",
-  "description": "Choose whether to use your own panel port on a new installation. If you choose No, a random port is used.",
+  "label": "Set your own panel port?",
+  "description": "Choose Yes to set the panel port yourself on a new installation. With No, the default, the installer picks a random port.",
   "type": "enum",
   "required": true,
   "default": "N",
   "options": [
     {
       "label": "Yes",
-      "value": "Y"
+      "value": "Y",
+      "i18n": {
+        "fa": {
+          "label": "بله"
+        }
+      }
     },
     {
       "label": "No",
-      "value": "N"
+      "value": "N",
+      "i18n": {
+        "fa": {
+          "label": "خیر"
+        }
+      }
     }
   ],
   "group": "Panel Settings",
   "i18n": {
     "fa": {
-      "label": "انتخاب پورت پنل",
-      "description": "انتخاب کنید که در نصب جدید، پورت دلخواه شما برای پنل استفاده شود یا نه. اگر «خیر» را انتخاب کنید، یک پورت تصادفی استفاده می‌شود."
+      "label": "پورت پنل را خودتان تعیین می‌کنید؟",
+      "description": "در نصب جدید، با «بله» پورت پنل را خودتان تعیین می‌کنید. با «خیر» (پیش‌فرض)، نصب‌کننده یک پورت تصادفی انتخاب می‌کند."
     }
   }
 }
@@ -140,7 +160,7 @@ IRANUX_PARAM
 {
   "name": "panel_port",
   "label": "Panel port",
-  "description": "Enter the port the panel listens on. Used only when Choose the panel port is Yes. Leave empty to get a random port.",
+  "description": "Enter the port the panel listens on. Used only when Set your own panel port? is Yes. Leave empty to get a random port.",
   "type": "port",
   "required": false,
   "example": 54321,
@@ -149,7 +169,7 @@ IRANUX_PARAM
   "i18n": {
     "fa": {
       "label": "پورت پنل",
-      "description": "پورتی را که پنل روی آن کار می‌کند وارد کنید. فقط وقتی استفاده می‌شود که «انتخاب پورت پنل» روی «بله» باشد. برای گرفتن یک پورت تصادفی، خالی بگذارید."
+      "description": "پورتی را که پنل روی آن کار می‌کند وارد کنید. فقط وقتی استفاده می‌شود که «پورت پنل را خودتان تعیین می‌کنید؟» روی «بله» باشد. برای گرفتن یک پورت تصادفی، خالی بگذارید."
     }
   }
 }

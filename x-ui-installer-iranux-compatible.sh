@@ -4,7 +4,7 @@
 {
   "standard": {
     "name": "iranux-script-metadata",
-    "schema_version": "1.2"
+    "schema_version": "1.3"
   },
   "script": {
     "id": "x-ui-installer-iranux-compatible",
@@ -166,11 +166,21 @@ SERVER_IPV4="${SERVER_IPV4:-}"
   "options": [
     {
       "label": "SQLite",
-      "value": "1"
+      "value": "1",
+      "i18n": {
+        "fa": {
+          "label": "SQLite"
+        }
+      }
     },
     {
       "label": "PostgreSQL",
-      "value": "2"
+      "value": "2",
+      "i18n": {
+        "fa": {
+          "label": "PostgreSQL"
+        }
+      }
     }
   ],
   "i18n": {
@@ -196,11 +206,21 @@ DATABASE_TYPE="${DATABASE_TYPE:-1}"
   "options": [
     {
       "label": "Install on this server",
-      "value": "1"
+      "value": "1",
+      "i18n": {
+        "fa": {
+          "label": "نصب روی همین سرور"
+        }
+      }
     },
     {
       "label": "Use an existing server",
-      "value": "2"
+      "value": "2",
+      "i18n": {
+        "fa": {
+          "label": "استفاده از سرور موجود"
+        }
+      }
     }
   ],
   "level": "advanced",
@@ -248,26 +268,46 @@ POSTGRES_DSN="${POSTGRES_DSN:-}"
   "options": [
     {
       "label": "Try again",
-      "value": "1"
+      "value": "1",
+      "i18n": {
+        "fa": {
+          "label": "دوباره تلاش شود"
+        }
+      }
     },
     {
       "label": "Use the connection address",
-      "value": "2"
+      "value": "2",
+      "i18n": {
+        "fa": {
+          "label": "استفاده از نشانی اتصال"
+        }
+      }
     },
     {
       "label": "Stop the installation",
-      "value": "3"
+      "value": "3",
+      "i18n": {
+        "fa": {
+          "label": "توقف نصب"
+        }
+      }
     },
     {
       "label": "Use SQLite instead",
-      "value": "4"
+      "value": "4",
+      "i18n": {
+        "fa": {
+          "label": "استفاده از SQLite به‌جای آن"
+        }
+      }
     }
   ],
   "level": "advanced",
   "i18n": {
     "fa": {
       "label": "در صورت خطا در نصب PostgreSQL",
-      "description": "انتخاب کنید اگر نصب PostgreSQL روی این سرور ناموفق بود، چه اتفاقی بیفتد. گزینه‌ی Try again نصب را تا وقتی موفق شود تکرار می‌کند."
+      "description": "انتخاب کنید اگر نصب PostgreSQL روی این سرور ناموفق بود، چه اتفاقی بیفتد. گزینه‌ی «دوباره تلاش شود» نصب را تا وقتی موفق شود تکرار می‌کند."
     }
   }
 }
@@ -278,8 +318,8 @@ POSTGRES_FAILURE_ACTION="${POSTGRES_FAILURE_ACTION:-4}"
 : <<'IRANUX_PARAM'
 {
   "name": "customize_panel_port",
-  "label": "Choose panel port",
-  "description": "Choose Yes to set the panel port yourself. Choose No to get a random port. Used on a new installation only.",
+  "label": "Set your own panel port?",
+  "description": "Choose Yes to set the panel port yourself. With No, the default, a random port is used. Used on a new installation only.",
   "type": "enum",
   "required": true,
   "default": "N",
@@ -287,17 +327,27 @@ POSTGRES_FAILURE_ACTION="${POSTGRES_FAILURE_ACTION:-4}"
   "options": [
     {
       "label": "Yes",
-      "value": "Y"
+      "value": "Y",
+      "i18n": {
+        "fa": {
+          "label": "بله"
+        }
+      }
     },
     {
       "label": "No",
-      "value": "N"
+      "value": "N",
+      "i18n": {
+        "fa": {
+          "label": "خیر"
+        }
+      }
     }
   ],
   "i18n": {
     "fa": {
-      "label": "انتخاب پورت پنل",
-      "description": "اگر می‌خواهید پورت پنل را خودتان تعیین کنید، «بله» را انتخاب کنید. با انتخاب «خیر»، یک پورت تصادفی ساخته می‌شود. فقط در نصب جدید اعمال می‌شود."
+      "label": "پورت پنل را خودتان تعیین می‌کنید؟",
+      "description": "با «بله» پورت پنل را خودتان تعیین می‌کنید. با «خیر» (پیش‌فرض)، یک پورت تصادفی ساخته می‌شود. فقط در نصب جدید اعمال می‌شود."
     }
   }
 }
@@ -309,7 +359,7 @@ CUSTOMIZE_PANEL_PORT="${CUSTOMIZE_PANEL_PORT:-N}"
 {
   "name": "panel_port",
   "label": "Panel port",
-  "description": "The port the panel listens on. Needed only when Choose panel port is Yes.",
+  "description": "The port the panel listens on. Needed only when Set your own panel port? is Yes.",
   "type": "port",
   "required": false,
   "example": "2053",
@@ -317,7 +367,7 @@ CUSTOMIZE_PANEL_PORT="${CUSTOMIZE_PANEL_PORT:-N}"
   "i18n": {
     "fa": {
       "label": "پورت پنل",
-      "description": "پورتی که پنل روی آن در دسترس است. فقط وقتی لازم است که «انتخاب پورت پنل» روی «بله» باشد."
+      "description": "پورتی که پنل روی آن در دسترس است. فقط وقتی لازم است که «پورت پنل را خودتان تعیین می‌کنید؟» روی «بله» باشد."
     }
   }
 }
@@ -377,25 +427,45 @@ ADMIN_PASSWORD="${ADMIN_PASSWORD:-}"
   "options": [
     {
       "label": "Let's Encrypt for a domain",
-      "value": "1"
+      "value": "1",
+      "i18n": {
+        "fa": {
+          "label": "Let's Encrypt برای دامنه"
+        }
+      }
     },
     {
       "label": "Let's Encrypt for the server IP",
-      "value": "2"
+      "value": "2",
+      "i18n": {
+        "fa": {
+          "label": "Let's Encrypt برای IP سرور"
+        }
+      }
     },
     {
       "label": "Use my own certificate",
-      "value": "3"
+      "value": "3",
+      "i18n": {
+        "fa": {
+          "label": "استفاده از گواهی خودم"
+        }
+      }
     },
     {
       "label": "No SSL",
-      "value": "4"
+      "value": "4",
+      "i18n": {
+        "fa": {
+          "label": "بدون SSL"
+        }
+      }
     }
   ],
   "i18n": {
     "fa": {
       "label": "گواهی SSL",
-      "description": "انتخاب کنید اگر پنل گواهی SSL ندارد، گواهی آن چگونه تهیه شود. هر دو گزینه‌ی Let's Encrypt به پورت 80 باز نیاز دارند. گزینه‌ی No SSL فقط پشت reverse proxy یا تونل SSH امن است."
+      "description": "انتخاب کنید اگر پنل گواهی SSL ندارد، گواهی آن چگونه تهیه شود. هر دو گزینه‌ی Let's Encrypt به پورت 80 باز نیاز دارند. گزینه‌ی «بدون SSL» فقط پشت reverse proxy یا تونل SSH امن است."
     }
   }
 }
@@ -581,18 +651,28 @@ CUSTOM_KEY_PATH="${CUSTOM_KEY_PATH:-}"
   "options": [
     {
       "label": "Yes",
-      "value": "Y"
+      "value": "Y",
+      "i18n": {
+        "fa": {
+          "label": "بله"
+        }
+      }
     },
     {
       "label": "No",
-      "value": "N"
+      "value": "N",
+      "i18n": {
+        "fa": {
+          "label": "خیر"
+        }
+      }
     }
   ],
   "level": "advanced",
   "i18n": {
     "fa": {
       "label": "پنل فقط روی localhost",
-      "description": "فقط برای گزینه‌ی No SSL استفاده می‌شود. با انتخاب «بله»، پنل فقط از خود سرور در دسترس است، مثلاً از طریق تونل SSH."
+      "description": "فقط برای گزینه‌ی «بدون SSL» استفاده می‌شود. با انتخاب «بله»، پنل فقط از خود سرور در دسترس است، مثلاً از طریق تونل SSH."
     }
   }
 }
@@ -612,11 +692,21 @@ BIND_PANEL_LOCALHOST="${BIND_PANEL_LOCALHOST:-N}"
   "options": [
     {
       "label": "Yes",
-      "value": "Y"
+      "value": "Y",
+      "i18n": {
+        "fa": {
+          "label": "بله"
+        }
+      }
     },
     {
       "label": "No",
-      "value": "N"
+      "value": "N",
+      "i18n": {
+        "fa": {
+          "label": "خیر"
+        }
+      }
     }
   ],
   "level": "advanced",
@@ -643,15 +733,30 @@ MODIFY_ACME_RELOADCMD="${MODIFY_ACME_RELOADCMD:-N}"
   "options": [
     {
       "label": "Keep the default",
-      "value": "0"
+      "value": "0",
+      "i18n": {
+        "fa": {
+          "label": "پیش‌فرض بماند"
+        }
+      }
     },
     {
       "label": "Reload Nginx and restart x-ui",
-      "value": "1"
+      "value": "1",
+      "i18n": {
+        "fa": {
+          "label": "بارگذاری مجدد Nginx و راه‌اندازی دوباره‌ی x-ui"
+        }
+      }
     },
     {
       "label": "My own command",
-      "value": "2"
+      "value": "2",
+      "i18n": {
+        "fa": {
+          "label": "فرمان خودم"
+        }
+      }
     }
   ],
   "level": "advanced",
@@ -699,11 +804,21 @@ CUSTOM_ACME_RELOADCMD="${CUSTOM_ACME_RELOADCMD:-}"
   "options": [
     {
       "label": "Yes",
-      "value": "Y"
+      "value": "Y",
+      "i18n": {
+        "fa": {
+          "label": "بله"
+        }
+      }
     },
     {
       "label": "No",
-      "value": "N"
+      "value": "N",
+      "i18n": {
+        "fa": {
+          "label": "خیر"
+        }
+      }
     }
   ],
   "level": "advanced",

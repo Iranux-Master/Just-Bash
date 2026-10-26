@@ -4,7 +4,7 @@
 {
   "standard": {
     "name": "iranux-script-metadata",
-    "schema_version": "1.2"
+    "schema_version": "1.3"
   },
   "script": {
     "id": "s-ui-alireza-installer",
@@ -89,11 +89,21 @@ IRANUX_PARAM
   "options": [
     {
       "label": "Yes",
-      "value": "Y"
+      "value": "Y",
+      "i18n": {
+        "fa": {
+          "label": "بله"
+        }
+      }
     },
     {
       "label": "No",
-      "value": "N"
+      "value": "N",
+      "i18n": {
+        "fa": {
+          "label": "خیر"
+        }
+      }
     }
   ],
   "group": "Panel Settings",
@@ -192,11 +202,21 @@ IRANUX_PARAM
   "options": [
     {
       "label": "Yes",
-      "value": "Y"
+      "value": "Y",
+      "i18n": {
+        "fa": {
+          "label": "بله"
+        }
+      }
     },
     {
       "label": "No",
-      "value": "N"
+      "value": "N",
+      "i18n": {
+        "fa": {
+          "label": "خیر"
+        }
+      }
     }
   ],
   "group": "Admin Settings",
