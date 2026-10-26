@@ -4,7 +4,7 @@
 {
   "standard": {
     "name": "iranux-script-metadata",
-    "schema_version": "1.2"
+    "schema_version": "1.3"
   },
   "script": {
     "id": "masterdnsvpn-server-linux-installer",
@@ -67,11 +67,21 @@ IRANUX_METADATA
   "options": [
     {
       "label": "Install",
-      "value": "install"
+      "value": "install",
+      "i18n": {
+        "fa": {
+          "label": "نصب"
+        }
+      }
     },
     {
       "label": "Uninstall",
-      "value": "uninstall"
+      "value": "uninstall",
+      "i18n": {
+        "fa": {
+          "label": "حذف"
+        }
+      }
     }
   ],
   "group": "Installation",

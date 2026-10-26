@@ -17,7 +17,9 @@ listed below as a question, not changed.
   `IRANUX_RESULT` line before the final marker (outputs with an empty value are left
   out; no secret is ever in it), the specification's `iranux_json_string` helper.
 - `required_commands` lists only commands a script needs and does not install itself.
-- Option labels stay English: v1.2 has no `i18n` for options (question for v1.3).
+- Option labels stayed English: v1.2 has no `i18n` for options. Resolved on 2026-10-26:
+  every script with a choice parameter now declares 1.3 and gives each option
+  `i18n.fa.label` (see item 15).
 
 ## Validation result
 
@@ -124,7 +126,7 @@ is the owner's decision (KI-43 item 12).
 9. **Arch family:** the first `pacman -Syu` has no `--noconfirm` (s-ui, x-ui, 3x-ui) and
    may wait for input.
 10. **3x-ui:** `panel_port` has no `generate` because the script uses it only when
-    "Choose panel port" is Yes; `ssl_setup_method` and `ssl_domain` stay basic because
+    "Set your own panel port?" (formerly "Choose panel port") is Yes; `ssl_setup_method` and `ssl_domain` stay basic because
     they change what is installed (specification §7.9.2); "Try again" after a failed
     PostgreSQL install repeats forever; when SSL setup fails the printed URL still says
     https.
@@ -143,7 +145,11 @@ is the owner's decision (KI-43 item 12).
 14. **Encryption key file** (MasterDnsVPN, StormDNS): `encrypt_key.txt` is written by the
     vendor binary in the working folder with a mode the script does not set. Add
     `chmod 600`?
-15. **Option labels** stay English (no option `i18n` in v1.2), while the Persian
-    descriptions name «بله» and «خیر». Add option translations in v1.3?
+15. **Option labels** (resolved 2026-10-26): specification v1.3 added
+    `options[].i18n.{lang}.label`. The five scripts with choice parameters (MasterDnsVPN,
+    StormDNS, s-ui, x-ui, 3x-ui) declare 1.3 and label every option in Persian, so the
+    form shows «بله» and «خیر» as the descriptions say. The x-ui and 3x-ui port question
+    now reads "Set your own panel port?" / «پورت پنل را خودتان تعیین می‌کنید؟» and says
+    that No, the default, uses a random port.
 16. **Checker false positive:** IRX1611 matches `fuser -k`; restrict the `-k` pattern to
     `curl`/`wget` in `tools/check_fixtures.py` of the specification repository.

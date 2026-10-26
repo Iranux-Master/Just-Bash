@@ -4,7 +4,7 @@
 {
   "standard": {
     "name": "iranux-script-metadata",
-    "schema_version": "1.2"
+    "schema_version": "1.3"
   },
   "script": {
     "id": "stormdns-server-linux-installer",
@@ -65,11 +65,21 @@ IRANUX_METADATA
   "options": [
     {
       "label": "Install",
-      "value": "install"
+      "value": "install",
+      "i18n": {
+        "fa": {
+          "label": "نصب"
+        }
+      }
     },
     {
       "label": "Uninstall",
-      "value": "uninstall"
+      "value": "uninstall",
+      "i18n": {
+        "fa": {
+          "label": "حذف"
+        }
+      }
     }
   ],
   "group": "Installation",
@@ -116,11 +126,21 @@ IRANUX_PARAM
   "options": [
     {
       "label": "Download",
-      "value": "0"
+      "value": "0",
+      "i18n": {
+        "fa": {
+          "label": "دانلود"
+        }
+      }
     },
     {
       "label": "Use local files",
-      "value": "1"
+      "value": "1",
+      "i18n": {
+        "fa": {
+          "label": "استفاده از فایل‌های محلی"
+        }
+      }
     }
   ],
   "group": "Installation",
