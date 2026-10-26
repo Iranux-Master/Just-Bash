@@ -14,7 +14,9 @@ in [`CONVERSION-V1.2.md`](CONVERSION-V1.2.md).
 
 - one strict-JSON `IRANUX_METADATA` block: id, name, version, description,
   `estimated_minutes`, risk level, requirements, supported operating systems, category,
-  action and a Material Design Icons name;
+  action and a Material Design Icons name; a script that needs DNS records (the two DNS
+  tunnel servers) declares them in a `dns` member (specification v1.3 §5.7), so Setup
+  creates them in the user's own DNS when it can;
 - Persian (`fa`) name and description for the script, a Persian label and
   description for every parameter, and a Persian label for every option of a choice
   (`options[].i18n.fa.label`, specification v1.3 §7.7), so the setup form reads in

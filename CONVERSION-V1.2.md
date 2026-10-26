@@ -151,5 +151,11 @@ is the owner's decision (KI-43 item 12).
     form shows «بله» and «خیر» as the descriptions say. The x-ui and 3x-ui port question
     now reads "Set your own panel port?" / «پورت پنل را خودتان تعیین می‌کنید؟» and says
     that No, the default, uses a random port.
+17. **DNS records** (resolved 2026-10-26, AD9): MasterDnsVPN and StormDNS declare the
+    delegation of the tunnel domain in a `dns` member: an `NS` record at `{anchor}` and
+    its glue `A` record `{anchor.label}-ns.{anchor.parent}`, both optional because the
+    domain is (update and uninstall leave it empty). No `AAAA` glue: the servers' IPv6
+    listening on port 53 is not verified. The domain's text asks for a subdomain and says
+    Setup creates the records when it can.
 16. **Checker false positive:** IRX1611 matches `fuser -k`; restrict the `-k` pattern to
     `curl`/`wget` in `tools/check_fixtures.py` of the specification repository.
