@@ -50,6 +50,38 @@
       "library": "mdi",
       "name": "server-network"
     }
+  },
+  "dns": {
+    "records": [
+      {
+        "id": "tunnel-ns",
+        "anchor": "user_domain",
+        "name": "{anchor.label}-ns.{anchor.parent}",
+        "type": "A",
+        "value": "{server.ipv4}",
+        "optional": true,
+        "purpose": "Names this server as the DNS server of the tunnel domain (the glue record of the delegation).",
+        "i18n": {
+          "fa": {
+            "purpose": "این سرور را به‌عنوان سرور DNS دامنه‌ی تونل نام‌گذاری می‌کند (رکورد glue برای واگذاری)."
+          }
+        }
+      },
+      {
+        "id": "tunnel",
+        "anchor": "user_domain",
+        "name": "{anchor}",
+        "type": "NS",
+        "value": "{anchor.label}-ns.{anchor.parent}",
+        "optional": true,
+        "purpose": "Hands the tunnel domain to this server, so the DNS queries of the tunnel reach it.",
+        "i18n": {
+          "fa": {
+            "purpose": "دامنه‌ی تونل را به این سرور واگذار می‌کند تا پرسش‌های DNS تونل به آن برسند."
+          }
+        }
+      }
+    ]
   }
 }
 IRANUX_METADATA
@@ -158,7 +190,7 @@ IRANUX_PARAM
 {
   "name": "user_domain",
   "label": "Tunnel domain",
-  "description": "Enter the domain (or subdomain) that points to this server with an NS record, for example vpn.example.com. It is needed for a new installation. It is written to server_config.toml only when no domain has been set there yet, so leave it empty if you already set one.",
+  "description": "Enter a subdomain for the tunnel, for example vpn.example.com, not the main domain. It must point to this server with an NS record: Setup creates that record and its glue record (vpn-ns.example.com) in your DNS when it can, otherwise add them yourself. It is needed for a new installation; leave it empty when you uninstall. It is written to server_config.toml only when no domain has been set there yet, so leave it empty if you already set one.",
   "type": "domain",
   "required": false,
   "example": "vpn.example.com",
@@ -167,7 +199,7 @@ IRANUX_PARAM
   "i18n": {
     "fa": {
       "label": "دامنه‌ی تونل",
-      "description": "دامنه (یا زیردامنه‌ای) را وارد کنید که با رکورد NS به این سرور اشاره می‌کند، مثلاً vpn.example.com. برای نصب جدید لازم است. این دامنه فقط وقتی در فایل server_config.toml نوشته می‌شود که هنوز دامنه‌ای در آن تنظیم نشده باشد؛ اگر قبلاً دامنه را تنظیم کرده‌اید، خالی بگذارید."
+      "description": "یک زیردامنه برای تونل وارد کنید، مثلاً vpn.example.com، نه دامنه‌ی اصلی. این زیردامنه باید با رکورد NS به این سرور اشاره کند: راه‌اندازی در صورت امکان این رکورد و رکورد glue آن (vpn-ns.example.com) را در DNS شما می‌سازد، وگرنه خودتان آن‌ها را اضافه کنید. برای نصب جدید لازم است؛ هنگام حذف خالی بگذارید. این دامنه فقط وقتی در فایل server_config.toml نوشته می‌شود که هنوز دامنه‌ای در آن تنظیم نشده باشد؛ اگر قبلاً دامنه را تنظیم کرده‌اید، خالی بگذارید."
     }
   }
 }
